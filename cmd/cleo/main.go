@@ -23,7 +23,11 @@ func run(args []string) int {
 		return 0
 	}
 	if args[1] == "setup" {
-		if err := setup.NewWizard().Run(); err != nil {
+		options := setup.Options{
+			AutoYes:        hasFlag(args[2:], "--yes"),
+			NonInteractive: hasFlag(args[2:], "--non-interactive"),
+		}
+		if err := setup.NewWizard(options).Run(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}

@@ -2,6 +2,7 @@ package release
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -35,4 +36,19 @@ func versionFromArgs(args []string, prefix string) (string, error) {
 		return "", fmt.Errorf("version must start with %q", prefix)
 	}
 	return version, nil
+}
+
+func intFlag(args []string, key string, fallback int) (int, error) {
+	raw := strings.TrimSpace(flagValue(args, key))
+	if raw == "" {
+		return fallback, nil
+	}
+	n, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0, fmt.Errorf("invalid %s value: %s", key, raw)
+	}
+	if n <= 0 {
+		return 0, fmt.Errorf("%s must be > 0", key)
+	}
+	return n, nil
 }

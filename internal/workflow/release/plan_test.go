@@ -25,3 +25,13 @@ func TestBuildPlanOK(t *testing.T) {
 		t.Fatalf("unexpected version: %s", p.Version)
 	}
 }
+
+func TestBuildPlanList(t *testing.T) {
+	p, err := BuildPlan(Input{Name: "list"}, Options{TagPrefix: "v"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !p.ReadOnly {
+		t.Fatal("list should be read-only")
+	}
+}

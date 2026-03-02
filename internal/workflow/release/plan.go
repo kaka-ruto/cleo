@@ -4,6 +4,10 @@ import "fmt"
 
 func BuildPlan(in Input, opts Options) (Plan, error) {
 	switch in.Name {
+	case "list":
+		return Plan{Name: in.Name, Description: "List releases", ReadOnly: true}, nil
+	case "latest":
+		return Plan{Name: in.Name, Description: "Show latest release", ReadOnly: true}, nil
 	case "plan":
 		v, err := versionFromArgs(in.Args, opts.TagPrefix)
 		if err != nil {

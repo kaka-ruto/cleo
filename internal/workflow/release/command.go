@@ -28,6 +28,10 @@ func (c *Command) Execute(name string, args []string) error {
 
 func printOutcome(plan Plan) {
 	switch plan.Name {
+	case "list":
+		fmt.Println("Release list retrieved.")
+	case "latest":
+		fmt.Println("Latest release retrieved.")
 	case "plan":
 		fmt.Printf("Release plan passed for %s.\n", plan.Version)
 	case "cut":

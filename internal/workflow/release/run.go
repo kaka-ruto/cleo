@@ -1,6 +1,16 @@
 package release
 
 func Execute(a Actions, in Input, opts Options) (Result, error) {
+	switch in.Name {
+	case "list":
+		limit, err := intFlag(in.Args, "--limit", 20)
+		if err != nil {
+			return Result{}, err
+		}
+		return Result{Name: "list"}, a.List(limit)
+	case "latest":
+		return Result{Name: "latest"}, a.Latest()
+	}
 	version, err := versionFromArgs(in.Args, opts.TagPrefix)
 	if err != nil {
 		return Result{}, err

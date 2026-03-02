@@ -30,6 +30,8 @@ type Actions interface {
 	Cut(version string) error
 	Publish(version string, draft bool, generateNotes bool) error
 	Verify(version string) error
+	List(limit int) error
+	Latest() error
 }
 
 type Options struct {

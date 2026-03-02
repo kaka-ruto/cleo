@@ -146,6 +146,8 @@ cleo pr batch [--from <pr>] [--no-watch] [--no-run] [--no-rebase]
 ```bash
 cleo release help
 cleo release go help
+cleo release list --limit 10
+cleo release latest
 cleo release plan --version v0.1.0
 cleo release cut --version v0.1.0
 cleo release publish --version v0.1.0 [--draft|--final] [--no-notes]
@@ -159,6 +161,8 @@ Release workflow follows the same deterministic pattern:
 2. `cut` creates and pushes the tag.
 3. `publish` creates the GitHub release.
 4. `verify` confirms release visibility.
+
+`publish` generates release notes in an enforced sectioned format and includes GitHub-generated change notes inside that template.
 
 For Go repositories (`go.mod` present), `publish` automatically:
 

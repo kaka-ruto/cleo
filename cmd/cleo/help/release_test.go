@@ -11,6 +11,8 @@ func TestPrintRelease(t *testing.T) {
 	PrintRelease(&out)
 	testContainsAll(t, out.String(),
 		"usage: cleo release <command>",
+		"list [--limit N]",
+		"latest",
 		"plan --version",
 		"publish --version",
 		"go <command>",

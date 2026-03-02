@@ -18,6 +18,8 @@ func (f *fakeActions) Publish(v string, d bool, n bool) error {
 	f.notes = n
 	return nil
 }
+func (f *fakeActions) List(int) error { return nil }
+func (f *fakeActions) Latest() error  { return nil }
 
 func TestExecutePublish(t *testing.T) {
 	f := &fakeActions{}

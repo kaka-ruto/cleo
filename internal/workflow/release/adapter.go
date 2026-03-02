@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/cafaye/cleo/internal/ghcli"
@@ -60,7 +61,11 @@ func (a *Adapter) Publish(version string, draft bool, generateNotes bool) error 
 		args = append(args, "--draft")
 	}
 	if generateNotes {
-		args = append(args, "--generate-notes")
+		notesPath, err := a.writeNotesFile(version)
+		if err != nil {
+			return err
+		}
+		args = append(args, "--notes-file", notesPath)
 	}
 	if releaseruntime.DetectGo(a.root) {
 		assets, err := releaseruntime.BuildGoReleaseArtifacts(version)
@@ -71,6 +76,40 @@ func (a *Adapter) Publish(version string, draft bool, generateNotes bool) error 
 	}
 	_, err := a.gh.Run(args...)
 	return err
+}
+
+func (a *Adapter) writeNotesFile(version string) (string, error) {
+	generated, err := a.generateNotes(version)
+	if err != nil {
+		return "", err
+	}
+	body := buildReleaseNotes(version, generated)
+	if err := validateReleaseNotes(body); err != nil {
+		return "", err
+	}
+	path := filepath.Join(os.TempDir(), "cleo-release-notes-"+version+".md")
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
+func (a *Adapter) generateNotes(version string) (string, error) {
+	api := fmt.Sprintf("repos/%s/releases/generate-notes", a.repo)
+	out, err := a.gh.Run("api", api, "-f", "tag_name="+version)
+	if err != nil {
+		return "", err
+	}
+	var payload struct {
+		Body string `json:"body"`
+	}
+	if err := ghcli.DecodeJSON(out, &payload); err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(payload.Body) == "" {
+		return "- No PR-based notes generated.", nil
+	}
+	return payload.Body, nil
 }
 
 func (a *Adapter) Verify(version string) error {
@@ -98,6 +137,38 @@ func (a *Adapter) Verify(version string) error {
 			return fmt.Errorf("missing release asset: %s", name)
 		}
 	}
+	return nil
+}
+
+func (a *Adapter) List(limit int) error {
+	out, err := a.gh.Run("release", "list", "--repo", a.repo, "--limit", fmt.Sprintf("%d", limit))
+	if err != nil {
+		return err
+	}
+	fmt.Print(out)
+	return nil
+}
+
+func (a *Adapter) Latest() error {
+	out, err := a.gh.Run("release", "view", "--repo", a.repo, "--json", "tagName,url,isDraft,isPrerelease,publishedAt")
+	if err != nil {
+		return err
+	}
+	var payload struct {
+		TagName      string `json:"tagName"`
+		URL          string `json:"url"`
+		IsDraft      bool   `json:"isDraft"`
+		IsPrerelease bool   `json:"isPrerelease"`
+		PublishedAt  string `json:"publishedAt"`
+	}
+	if err := ghcli.DecodeJSON(out, &payload); err != nil {
+		return err
+	}
+	fmt.Printf("Latest: %s\n", payload.TagName)
+	fmt.Printf("URL: %s\n", payload.URL)
+	fmt.Printf("Draft: %t\n", payload.IsDraft)
+	fmt.Printf("Prerelease: %t\n", payload.IsPrerelease)
+	fmt.Printf("Published: %s\n", payload.PublishedAt)
 	return nil
 }
 

@@ -8,6 +8,8 @@ import (
 func PrintRelease(out io.Writer) {
 	fmt.Fprintln(out, "usage: cleo release <command>")
 	fmt.Fprintln(out, "")
+	fmt.Fprintln(out, "workflow rule: use cleo release commands for release work.")
+	fmt.Fprintln(out, "")
 	fmt.Fprintln(out, "commands:")
 	fmt.Fprintln(out, "  plan --version <vX.Y.Z>                Validate release preconditions")
 	fmt.Fprintln(out, "  cut --version <vX.Y.Z>                 Create and push tag")

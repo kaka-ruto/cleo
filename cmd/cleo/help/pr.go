@@ -8,6 +8,8 @@ import (
 func PrintPR(out io.Writer) {
 	fmt.Fprintln(out, "usage: cleo pr <command>")
 	fmt.Fprintln(out, "")
+	fmt.Fprintln(out, "workflow rule: use cleo pr commands for PR work.")
+	fmt.Fprintln(out, "")
 	fmt.Fprintln(out, "commands:")
 	fmt.Fprintln(out, "  status <pr>                            Show PR summary")
 	fmt.Fprintln(out, "  gate <pr>                              Validate PR is merge-ready")

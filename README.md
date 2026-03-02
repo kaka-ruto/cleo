@@ -53,6 +53,14 @@ cleo pr help
 cleo pr help merge
 ```
 
+## Agent Setup
+
+Add workflow preferences to your project `AGENTS.md` so agents default to `cleo` commands.
+
+Use this copy-ready template:
+
+- [YOUR_AGENTS.md](/Users/kaka/Code/Cafaye/cleo/docs/YOUR_AGENTS.md)
+
 ## Update cleo
 
 Update to latest `master` installer:

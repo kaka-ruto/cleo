@@ -7,8 +7,24 @@ Guidance for agents working in this repository.
 `cleo` is a deterministic GitHub PR operations CLI.
 
 - Keep scope on `cleo pr` workflows.
+- Prefer `cleo` workflows over raw `gh`/manual steps when a workflow command exists.
 - Prefer predictable behavior over smart behavior.
 - Do not add autonomous/agent runtime features in this repo.
+
+## Workflow Preference
+
+- PR work: start with `cleo pr help`, then use `cleo pr ...`.
+- Release work: start with `cleo release help`, then use `cleo release ...`.
+- Do not jump to raw `gh` unless `cleo` has no equivalent.
+- Use `--non-interactive` in agent/automation contexts to avoid stalls.
+
+## Intent Mapping
+
+- "create/open PR" -> `cleo pr create`
+- "check PR health" -> `cleo pr doctor`, `cleo pr gate`, `cleo pr checks`
+- "merge PR" -> `cleo pr merge <pr>`
+- "new release" -> `cleo release plan|cut|publish|verify`
+- Go release explicitly -> `cleo release go plan|cut|publish|verify`
 
 ## Design Rules
 

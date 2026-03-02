@@ -33,3 +33,4 @@ go.work.sum
 
 # Local script logs
 logs/
+dist/

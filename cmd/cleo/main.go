@@ -26,6 +26,7 @@ func run(args []string) int {
 		options := setup.Options{
 			AutoYes:        hasFlag(args[2:], "--yes"),
 			NonInteractive: hasFlag(args[2:], "--non-interactive"),
+			SkipAuth:       hasFlag(args[2:], "--skip-auth"),
 		}
 		if err := setup.NewWizard(options).Run(); err != nil {
 			fmt.Fprintln(os.Stderr, err)

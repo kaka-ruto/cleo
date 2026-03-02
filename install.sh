@@ -22,24 +22,35 @@ confirm() {
 
 install_pkg() {
   local pkg="$1"
+  local resolved_pkg
+  resolved_pkg="$(map_pkg_name "$pkg")"
   if need brew; then
-    brew install "$pkg"
+    brew install "$resolved_pkg"
     return
   fi
   if need apt-get; then
-    sudo apt-get update && sudo apt-get install -y "$pkg"
+    sudo apt-get update && sudo apt-get install -y "$resolved_pkg"
     return
   fi
   if need dnf; then
-    sudo dnf install -y "$pkg"
+    sudo dnf install -y "$resolved_pkg"
     return
   fi
   if need yum; then
-    sudo yum install -y "$pkg"
+    sudo yum install -y "$resolved_pkg"
     return
   fi
-  echo "No supported package manager found to install $pkg"
+  echo "No supported package manager found to install $resolved_pkg"
   exit 1
+}
+
+map_pkg_name() {
+  local pkg="$1"
+  if need apt-get && [[ "$pkg" == "go" ]]; then
+    echo "golang-go"
+    return
+  fi
+  echo "$pkg"
 }
 
 ensure_dep() {
@@ -78,7 +89,7 @@ chmod +x "$INSTALL_DIR/cleo"
 
 echo "==> Running cleo setup"
 if [[ "$NON_INTERACTIVE" == "1" ]]; then
-  "$INSTALL_DIR/cleo" setup --yes --non-interactive
+  "$INSTALL_DIR/cleo" setup --yes --non-interactive --skip-auth
 else
   "$INSTALL_DIR/cleo" setup
 fi

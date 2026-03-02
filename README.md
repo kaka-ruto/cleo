@@ -21,6 +21,7 @@ Run a guided setup with dependency checks, optional installs, GitHub auth, and `
 ```bash
 cleo setup
 cleo setup --yes --non-interactive
+cleo setup --yes --non-interactive --skip-auth
 ```
 
 ## Build

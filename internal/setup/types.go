@@ -5,6 +5,7 @@ import "os"
 type Options struct {
 	AutoYes        bool
 	NonInteractive bool
+	SkipAuth       bool
 }
 
 type Wizard struct {

@@ -7,8 +7,10 @@ func (w *Wizard) Run() error {
 	if err := w.ensureDeps(); err != nil {
 		return err
 	}
-	if err := w.ensureGitHubAuth(); err != nil {
-		return err
+	if !w.Options.SkipAuth {
+		if err := w.ensureGitHubAuth(); err != nil {
+			return err
+		}
 	}
 	if err := w.writeConfig(); err != nil {
 		return err

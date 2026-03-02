@@ -127,7 +127,7 @@ func runRelease(args []string) int {
 		return 1
 	}
 	cmd := workflowrelease.New(
-		workflowrelease.NewAdapter(cfg.GitHub.Owner, cfg.GitHub.Repo),
+		workflowrelease.NewAdapter(cfg.GitHub.Owner, cfg.GitHub.Repo, workflowrelease.NewOptions(cfg)),
 		workflowrelease.NewOptions(cfg),
 	)
 	if err := cmd.Execute(args[2], args[3:]); err != nil {
@@ -152,7 +152,7 @@ func runReleaseGo(args []string) int {
 		return 1
 	}
 	cmd := workflowrelease.New(
-		workflowrelease.NewAdapter(cfg.GitHub.Owner, cfg.GitHub.Repo),
+		workflowrelease.NewAdapter(cfg.GitHub.Owner, cfg.GitHub.Repo, workflowrelease.NewOptions(cfg)),
 		workflowrelease.NewOptions(cfg),
 	)
 	if err := cmd.Execute(args[3], args[4:]); err != nil {

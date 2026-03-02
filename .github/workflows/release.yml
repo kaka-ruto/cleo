@@ -54,9 +54,14 @@ jobs:
           echo "value=$version" >> "$GITHUB_OUTPUT"
 
       - name: Build assets
+        env:
+          BINARY_NAME: cleo
+          BUILD_TARGET: ./cmd/cleo
         run: scripts/release/build-assets.sh "${{ steps.version.outputs.value }}"
 
       - name: Verify assets
+        env:
+          BINARY_NAME: cleo
         run: scripts/release/verify-assets.sh "${{ steps.version.outputs.value }}"
 
       - name: Publish GitHub release

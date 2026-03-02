@@ -47,6 +47,9 @@ type Options struct {
 	DefaultDraft  bool
 	GenerateNotes bool
 	TagPrefix     string
+	ChangelogFile string
+	BinaryName    string
+	BuildTarget   string
 }
 
 func NewOptions(cfg *config.Config) Options {
@@ -54,5 +57,8 @@ func NewOptions(cfg *config.Config) Options {
 		DefaultDraft:  cfg.Release.DefaultDraft,
 		GenerateNotes: cfg.Release.GenerateNotes,
 		TagPrefix:     cfg.Release.TagPrefix,
+		ChangelogFile: cfg.Release.ChangelogFile,
+		BinaryName:    cfg.Release.BinaryName,
+		BuildTarget:   cfg.Release.BuildTarget,
 	}
 }

@@ -13,7 +13,7 @@ func TestBuildReleaseNotesContainsSections(t *testing.T) {
 		MigrationNotes:  "- none",
 		Verification:    "- test",
 	}
-	body := buildReleaseNotesWithChangelog("v1.2.3", "## What's Changed\n- test", sections, "https://example/changelog")
+	body := buildReleaseNotesWithChangelog("v1.2.3", "## What's Changed\n- test", sections, "https://example/changelog", "https://example/commits")
 	for _, section := range requiredNoteSections {
 		if !strings.Contains(body, section) {
 			t.Fatalf("missing section %q", section)
@@ -29,7 +29,7 @@ func TestValidateReleaseNotes(t *testing.T) {
 		MigrationNotes:  "- none",
 		Verification:    "- test",
 	}
-	body := buildReleaseNotesWithChangelog("v1.2.3", "x", sections, "https://example/changelog")
+	body := buildReleaseNotesWithChangelog("v1.2.3", "x", sections, "https://example/changelog", "https://example/commits")
 	if err := validateReleaseNotes(body); err != nil {
 		t.Fatalf("unexpected validation error: %v", err)
 	}

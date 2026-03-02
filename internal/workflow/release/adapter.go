@@ -12,14 +12,24 @@ import (
 )
 
 type Adapter struct {
-	gh   *ghcli.Client
-	repo string
-	root string
+	gh            *ghcli.Client
+	repo          string
+	root          string
+	changelogFile string
+	binaryName    string
+	buildTarget   string
 }
 
-func NewAdapter(owner, repo string) *Adapter {
+func NewAdapter(owner, repo string, opts Options) *Adapter {
 	root, _ := os.Getwd()
-	return &Adapter{gh: ghcli.New(), repo: owner + "/" + repo, root: root}
+	return &Adapter{
+		gh:            ghcli.New(),
+		repo:          owner + "/" + repo,
+		root:          root,
+		changelogFile: opts.ChangelogFile,
+		binaryName:    opts.BinaryName,
+		buildTarget:   opts.BuildTarget,
+	}
 }
 
 func (a *Adapter) CheckGitClean() error {
@@ -68,7 +78,7 @@ func (a *Adapter) Publish(version string, draft bool, generateNotes bool, notes 
 		args = append(args, "--notes-file", notesPath)
 	}
 	if releaseruntime.DetectGo(a.root) {
-		assets, err := releaseruntime.BuildGoReleaseArtifacts(version)
+		assets, err := releaseruntime.BuildGoReleaseArtifacts(version, a.binaryName, a.buildTarget)
 		if err != nil {
 			return err
 		}
@@ -83,13 +93,14 @@ func (a *Adapter) writeNotesFile(version string, notes NoteOverrides) (string, e
 	if err != nil {
 		return "", err
 	}
-	sections, warnings := changelogSections("CHANGELOG.md", version)
+	sections, warnings := changelogSections(a.changelogFile, version)
 	for _, w := range warnings {
 		fmt.Printf("Warning: %s\n", w)
 	}
 	sections = applyOverrides(sections, notes)
-	changelogURL := fmt.Sprintf("https://github.com/%s/blob/%s/CHANGELOG.md", a.repo, version)
-	body := buildReleaseNotesWithChangelog(version, generated, sections, changelogURL)
+	changelogURL := fmt.Sprintf("https://github.com/%s/blob/%s/%s", a.repo, version, a.changelogFile)
+	fullChangelogURL := fmt.Sprintf("https://github.com/%s/commits/%s", a.repo, version)
+	body := buildReleaseNotesWithChangelog(version, generated, sections, changelogURL, fullChangelogURL)
 	if err := validateReleaseNotes(body); err != nil {
 		return "", err
 	}
@@ -138,7 +149,7 @@ func (a *Adapter) Verify(version string) error {
 	for _, a := range payload.Assets {
 		have[strings.TrimSpace(a.Name)] = true
 	}
-	for _, name := range releaseruntime.ExpectedGoAssetNames(version) {
+	for _, name := range releaseruntime.ExpectedGoAssetNames(version, a.binaryName) {
 		if !have[name] {
 			return fmt.Errorf("missing release asset: %s", name)
 		}
@@ -147,7 +158,7 @@ func (a *Adapter) Verify(version string) error {
 }
 
 func (a *Adapter) ValidateChangelog(version string) error {
-	_, warnings := changelogSections("CHANGELOG.md", version)
+	_, warnings := changelogSections(a.changelogFile, version)
 	for _, w := range warnings {
 		fmt.Printf("Warning: %s\n", w)
 	}

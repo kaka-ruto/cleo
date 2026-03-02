@@ -3,6 +3,8 @@ set -euo pipefail
 
 VERSION="${1:-}"
 OUT_DIR="${2:-dist/release}"
+BINARY_NAME="${BINARY_NAME:-cleo}"
+BUILD_TARGET="${BUILD_TARGET:-./cmd/cleo}"
 
 if [[ -z "$VERSION" ]]; then
   echo "usage: $0 <version> [out_dir]"
@@ -10,7 +12,7 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 mkdir -p "$OUT_DIR"
-rm -f "$OUT_DIR"/cleo_"$VERSION"_*.tar.gz "$OUT_DIR"/checksums.txt
+rm -f "$OUT_DIR"/"${BINARY_NAME}"_"$VERSION"_*.tar.gz "$OUT_DIR"/checksums.txt
 
 targets=(
   "linux amd64"
@@ -22,17 +24,17 @@ targets=(
 for target in "${targets[@]}"; do
   os="${target% *}"
   arch="${target#* }"
-  bin="$OUT_DIR/cleo_${VERSION}_${os}_${arch}"
+  bin="$OUT_DIR/${BINARY_NAME}_${VERSION}_${os}_${arch}"
   tarball="${bin}.tar.gz"
 
-  GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags "-X main.version=${VERSION}" -o "$bin" ./cmd/cleo
+  GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -ldflags "-X main.version=${VERSION}" -o "$bin" "$BUILD_TARGET"
   tar -C "$OUT_DIR" -czf "$tarball" "$(basename "$bin")"
   rm -f "$bin"
 done
 
 (
   cd "$OUT_DIR"
-  shasum -a 256 cleo_"$VERSION"_*.tar.gz > checksums.txt
+  shasum -a 256 "${BINARY_NAME}"_"$VERSION"_*.tar.gz > checksums.txt
 )
 
 echo "Built assets in $OUT_DIR"

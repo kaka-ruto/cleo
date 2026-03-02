@@ -53,5 +53,7 @@ safety:
 release:
   tag_prefix: "v"
   changelog_file: "CHANGELOG.md"
+  binary_name: "cleo"
+  build_target: "./cmd/cleo"
   generate_notes: true
   default_draft: false

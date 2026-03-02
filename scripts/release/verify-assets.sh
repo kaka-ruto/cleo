@@ -3,6 +3,7 @@ set -euo pipefail
 
 VERSION="${1:-}"
 OUT_DIR="${2:-dist/release}"
+BINARY_NAME="${BINARY_NAME:-cleo}"
 
 if [[ -z "$VERSION" ]]; then
   echo "usage: $0 <version> [out_dir]"
@@ -10,10 +11,10 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 required=(
-  "cleo_${VERSION}_linux_amd64.tar.gz"
-  "cleo_${VERSION}_linux_arm64.tar.gz"
-  "cleo_${VERSION}_darwin_amd64.tar.gz"
-  "cleo_${VERSION}_darwin_arm64.tar.gz"
+  "${BINARY_NAME}_${VERSION}_linux_amd64.tar.gz"
+  "${BINARY_NAME}_${VERSION}_linux_arm64.tar.gz"
+  "${BINARY_NAME}_${VERSION}_darwin_amd64.tar.gz"
+  "${BINARY_NAME}_${VERSION}_darwin_arm64.tar.gz"
   "checksums.txt"
 )
 

@@ -171,6 +171,12 @@ For Go repositories (`go.mod` present), `publish` automatically:
 - generates `checksums.txt`
 - uploads artifacts to the GitHub release
 
+For reuse in other projects, configure release packaging in `cleo.yml`:
+
+- `release.binary_name` (artifact/binary name)
+- `release.build_target` (Go build target path, for example `./cmd/mycli`)
+- `release.changelog_file` (notes source path)
+
 ## Tests
 
 ```bash

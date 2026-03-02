@@ -17,11 +17,13 @@ var requiredNoteSections = []string{
 }
 
 func buildReleaseNotes(version, generated string) string {
-	return buildReleaseNotesWithChangelog(version, generated, ChangelogSections{}, "")
+	return buildReleaseNotesWithChangelog(version, generated, ChangelogSections{}, "", "")
 }
 
-func buildReleaseNotesWithChangelog(version, generated string, sections ChangelogSections, changelogURL string) string {
-	fullChangelog := fmt.Sprintf("https://github.com/cafaye/cleo/commits/%s", version)
+func buildReleaseNotesWithChangelog(version, generated string, sections ChangelogSections, changelogURL, fullChangelog string) string {
+	if strings.TrimSpace(fullChangelog) == "" {
+		fullChangelog = fmt.Sprintf("https://github.com/cafaye/cleo/commits/%s", version)
+	}
 	lines := []string{
 		"## Summary",
 		strings.TrimSpace(sections.Summary),

@@ -62,6 +62,8 @@ type Config struct {
 	Release struct {
 		TagPrefix     string `yaml:"tag_prefix"`
 		ChangelogFile string `yaml:"changelog_file"`
+		BinaryName    string `yaml:"binary_name"`
+		BuildTarget   string `yaml:"build_target"`
 		GenerateNotes bool   `yaml:"generate_notes"`
 		DefaultDraft  bool   `yaml:"default_draft"`
 	} `yaml:"release"`
@@ -134,6 +136,12 @@ func (c *Config) applyDefaults() {
 	if c.Release.ChangelogFile == "" {
 		c.Release.ChangelogFile = "CHANGELOG.md"
 	}
+	if c.Release.BinaryName == "" {
+		c.Release.BinaryName = "cleo"
+	}
+	if c.Release.BuildTarget == "" {
+		c.Release.BuildTarget = "./cmd/cleo"
+	}
 }
 
 func (c *Config) validate() error {
@@ -153,6 +161,12 @@ func (c *Config) validate() error {
 	}
 	if c.Release.TagPrefix == "" {
 		return fmt.Errorf("release.tag_prefix is required")
+	}
+	if c.Release.BinaryName == "" {
+		return fmt.Errorf("release.binary_name is required")
+	}
+	if c.Release.BuildTarget == "" {
+		return fmt.Errorf("release.build_target is required")
 	}
 	return nil
 }

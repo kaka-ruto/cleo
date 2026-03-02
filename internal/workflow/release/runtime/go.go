@@ -30,16 +30,16 @@ func DetectGo(root string) bool {
 	return err == nil
 }
 
-func ExpectedGoAssetNames(version string) []string {
+func ExpectedGoAssetNames(version, binaryName string) []string {
 	names := make([]string, 0, len(DefaultGoTargets)+1)
 	for _, t := range DefaultGoTargets {
-		names = append(names, fmt.Sprintf("cleo_%s_%s_%s.tar.gz", version, t.OS, t.Arch))
+		names = append(names, fmt.Sprintf("%s_%s_%s_%s.tar.gz", binaryName, version, t.OS, t.Arch))
 	}
 	names = append(names, "checksums.txt")
 	return names
 }
 
-func BuildGoReleaseArtifacts(version string) ([]string, error) {
+func BuildGoReleaseArtifacts(version, binaryName, buildTarget string) ([]string, error) {
 	if _, err := runLocal("go", "version"); err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func BuildGoReleaseArtifacts(version string) ([]string, error) {
 	assets := make([]string, 0, len(DefaultGoTargets)+1)
 	checksumLines := make([]string, 0, len(DefaultGoTargets))
 	for _, t := range DefaultGoTargets {
-		archivePath, checksum, err := buildTargetArchive(distDir, version, t)
+		archivePath, checksum, err := buildTargetArchive(distDir, version, binaryName, buildTarget, t)
 		if err != nil {
 			return nil, err
 		}
@@ -68,16 +68,16 @@ func BuildGoReleaseArtifacts(version string) ([]string, error) {
 	return assets, nil
 }
 
-func buildTargetArchive(distDir, version string, target GoTarget) (string, string, error) {
-	binPath := filepath.Join(distDir, fmt.Sprintf("cleo_%s_%s_%s", version, target.OS, target.Arch))
+func buildTargetArchive(distDir, version, binaryName, buildTarget string, target GoTarget) (string, string, error) {
+	binPath := filepath.Join(distDir, fmt.Sprintf("%s_%s_%s_%s", binaryName, version, target.OS, target.Arch))
 	if _, err := runLocalEnv(
 		[]string{"GOOS=" + target.OS, "GOARCH=" + target.Arch, "CGO_ENABLED=0"},
-		"go", "build", "-ldflags", "-X main.version="+version, "-o", binPath, "./cmd/cleo",
+		"go", "build", "-ldflags", "-X main.version="+version, "-o", binPath, buildTarget,
 	); err != nil {
 		return "", "", err
 	}
 	archivePath := binPath + ".tar.gz"
-	if err := writeTarGz(archivePath, binPath, "cleo"); err != nil {
+	if err := writeTarGz(archivePath, binPath, binaryName); err != nil {
 		return "", "", err
 	}
 	if err := os.Remove(binPath); err != nil {

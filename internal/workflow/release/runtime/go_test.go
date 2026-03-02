@@ -20,7 +20,7 @@ func TestDetectGo(t *testing.T) {
 }
 
 func TestExpectedGoAssetNames(t *testing.T) {
-	names := ExpectedGoAssetNames("v1.2.3")
+	names := ExpectedGoAssetNames("v1.2.3", "cleo")
 	if len(names) != len(DefaultGoTargets)+1 {
 		t.Fatalf("unexpected asset count: %d", len(names))
 	}

@@ -62,3 +62,7 @@ cleo release verify --version vX.Y.Z
   - `--breaking`
   - `--migration`
   - `--verification`
+- Cross-project packaging config:
+  - `release.binary_name`
+  - `release.build_target`
+  - `release.changelog_file`

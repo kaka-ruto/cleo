@@ -38,6 +38,11 @@ func (w *Wizard) ensureGitHubAuth() error {
 	if err := runStreaming(w.Stdin, w.Stdout, w.Stderr, "gh", "auth", "status"); err == nil {
 		return nil
 	}
+	if w.Options.NonInteractive {
+		fmt.Fprintln(w.Stdout, "GitHub auth is missing. Continuing non-interactive setup.")
+		fmt.Fprintln(w.Stdout, "Next step: run `gh auth login` before using PR commands.")
+		return nil
+	}
 	ok, err := w.confirm("GitHub auth is missing. Run `gh auth login` now?")
 	if err != nil {
 		return err

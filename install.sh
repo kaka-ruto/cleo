@@ -5,6 +5,9 @@ REPO_URL="${REPO_URL:-https://github.com/cafaye/cleo.git}"
 BRANCH="${BRANCH:-master}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-0}"
+if [[ "$NON_INTERACTIVE" == "1" ]]; then
+  export DEBIAN_FRONTEND=noninteractive
+fi
 
 need() {
   command -v "$1" >/dev/null 2>&1
@@ -89,7 +92,7 @@ chmod +x "$INSTALL_DIR/cleo"
 
 echo "==> Running cleo setup"
 if [[ "$NON_INTERACTIVE" == "1" ]]; then
-  "$INSTALL_DIR/cleo" setup --yes --non-interactive --skip-auth
+  "$INSTALL_DIR/cleo" setup --non-interactive
 else
   "$INSTALL_DIR/cleo" setup
 fi

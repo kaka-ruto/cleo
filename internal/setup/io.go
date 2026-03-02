@@ -19,11 +19,11 @@ func (w *Wizard) title(text string) {
 }
 
 func (w *Wizard) confirm(question string) (bool, error) {
-	if w.Options.AutoYes {
+	if w.Options.NonInteractive {
 		fmt.Fprintf(w.Stdout, "%s [auto: yes]\n", question)
 		return true, nil
 	}
-	if w.Options.NonInteractive || !isTerminal(w.Stdin) {
+	if !isTerminal(w.Stdin) {
 		fmt.Fprintf(w.Stdout, "%s [auto: no]\n", question)
 		return false, nil
 	}

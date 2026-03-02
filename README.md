@@ -14,6 +14,21 @@ Non-interactive mode:
 NON_INTERACTIVE=1 curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/install.sh | bash
 ```
 
+## One-Command Uninstall
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/uninstall.sh | bash
+```
+
+Options:
+
+```bash
+NON_INTERACTIVE=1 SCAN_ROOTS="$HOME/Code,$HOME/work" curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/uninstall.sh | bash
+```
+
+- `NON_INTERACTIVE=1`: auto-confirms prompts.
+- `SCAN_ROOTS`: comma-separated directories scanned for `cleo.yml` cleanup.
+
 ## Setup Wizard
 
 Run a guided setup with dependency checks, optional installs, GitHub auth, and `cleo.yml` generation:

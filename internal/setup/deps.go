@@ -34,6 +34,31 @@ func (w *Wizard) checkOrInstall(bin string) error {
 	return nil
 }
 
+func (w *Wizard) ensureOptional(bin string) {
+	if hasCommand(bin) {
+		fmt.Fprintf(w.Stdout, "[ok] %s\n", bin)
+		return
+	}
+	fmt.Fprintf(w.Stdout, "[optional-missing] %s\n", bin)
+	ok, err := w.confirm(fmt.Sprintf("Install optional dependency %s now?", bin))
+	if err != nil || !ok {
+		return
+	}
+	cmd, args, err := installCommand(bin)
+	if err != nil {
+		fmt.Fprintf(w.Stdout, "Skipping %s install: %v\n", bin, err)
+		return
+	}
+	fmt.Fprintf(w.Stdout, "Installing optional %s with: %s %s\n", bin, cmd, strings.Join(args, " "))
+	if err := runStreaming(w.Stdin, w.Stdout, w.Stderr, cmd, args...); err != nil {
+		fmt.Fprintf(w.Stdout, "Skipping %s install: %v\n", bin, err)
+		return
+	}
+	if !hasCommand(bin) {
+		fmt.Fprintf(w.Stdout, "Optional %s is still unavailable; continuing without it.\n", bin)
+	}
+}
+
 func (w *Wizard) ensureGitHubAuth() error {
 	if err := runStreaming(w.Stdin, w.Stdout, w.Stderr, "gh", "auth", "status"); err == nil {
 		return nil

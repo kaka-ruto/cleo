@@ -21,10 +21,11 @@ func (w *Wizard) Run() error {
 }
 
 func (w *Wizard) ensureDeps() error {
-	for _, bin := range []string{"git", "gh", "gum"} {
+	for _, bin := range []string{"git", "gh"} {
 		if err := w.checkOrInstall(bin); err != nil {
 			return err
 		}
 	}
+	w.ensureOptional("gum")
 	return nil
 }

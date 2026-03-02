@@ -2,11 +2,15 @@
 
 Deterministic CLI for GitHub PR operations.
 
-## Setup
+## Setup Wizard
 
-1. Install GitHub CLI and authenticate (`gh auth status`).
-2. Add `cleo.yml` at repo root.
-3. Build:
+Run a guided setup with dependency checks, optional installs, GitHub auth, and `cleo.yml` generation:
+
+```bash
+cleo setup
+```
+
+## Build
 
 ```bash
 go build ./cmd/cleo

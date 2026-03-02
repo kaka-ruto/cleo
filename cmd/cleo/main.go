@@ -8,6 +8,7 @@ import (
 
 	"github.com/cafaye/cleo/internal/config"
 	"github.com/cafaye/cleo/internal/pr"
+	"github.com/cafaye/cleo/internal/setup"
 )
 
 var version = "dev"
@@ -21,8 +22,15 @@ func run(args []string) int {
 		fmt.Printf("cleo %s\n", version)
 		return 0
 	}
+	if args[1] == "setup" {
+		if err := setup.NewWizard().Run(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 1
+		}
+		return 0
+	}
 	if args[1] != "pr" {
-		fmt.Fprintln(os.Stderr, "usage: cleo pr <create|status|gate|checks|merge|watch|run|rebase|retarget|batch>")
+		fmt.Fprintln(os.Stderr, "usage: cleo <setup|pr>")
 		return 2
 	}
 	if len(args) < 3 {

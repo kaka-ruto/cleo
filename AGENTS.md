@@ -27,6 +27,10 @@ Guidance for agents working in this repository.
 
 ## Command Principles
 
+- Keep onboarding polished with `cleo setup`:
+  - sequential checks
+  - explicit confirmations before installs
+  - clear progress output
 - Read-only commands: `status`, `gate`, `checks`, `watch`.
 - Mutating commands: `create`, `merge`, `run`, `rebase`, `retarget`, `batch`.
 - Mutations must validate preconditions first where possible.

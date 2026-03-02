@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - Improved `cleo pr gate` to block on pending or missing checks with explicit `cleo pr watch <pr>` guidance.
 - Improved `cleo pr checks` diagnostics with pending/failed summaries and traceability hints.
 - Improved `cleo update` logs with current/latest version visibility and clear progress messaging.
+- Added repository agent rule to publish a release after each significant improvement.
 
 ### Breaking Changes
 

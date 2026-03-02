@@ -17,6 +17,7 @@ Guidance for agents working in this repository.
 - Release work: start with `cleo release help`, then use `cleo release ...`.
 - Do not jump to raw `gh` unless `cleo` has no equivalent.
 - Use `--non-interactive` in agent/automation contexts to avoid stalls.
+- After every significant improvement, publish a release using `cleo release plan|cut|publish|verify`.
 
 ## Intent Mapping
 

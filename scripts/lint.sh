@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-STEP=lint
+STEP="lint"
+export STEP
 # shellcheck disable=SC1091
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 

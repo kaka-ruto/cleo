@@ -7,6 +7,7 @@ if [[ -z "${STEP:-}" ]]; then
 fi
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-artifacts}"
+EVENT_VERSION="1"
 
 ensure_artifact_dir() {
   mkdir -p "${ARTIFACT_DIR}"
@@ -15,7 +16,9 @@ ensure_artifact_dir() {
 event() {
   local state="$1"
   shift
-  printf 'CLEO_EVENT step=%s state=%s %s\n' "${STEP}" "${state}" "$*"
+  local ts
+  ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  printf 'CLEO_EVENT v=%s ts=%s step=%s state=%s %s\n' "${EVENT_VERSION}" "${ts}" "${STEP}" "${state}" "$*"
 }
 
 require_command() {
@@ -37,11 +40,11 @@ run_logged() {
   event start "command=\"$*\" log=${log_file}"
   if "$@" >"${log_file}" 2>&1; then
     cat "${log_file}"
-    event success "log=${log_file}"
+    event success "command=\"$*\" log=${log_file}"
     return 0
   fi
 
   cat "${log_file}" >&2
-  event failure "log=${log_file} hint=\"${hint}\""
+  event failure "command=\"$*\" log=${log_file} hint=\"${hint}\""
   return 1
 }

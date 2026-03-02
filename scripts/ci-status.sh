@@ -9,7 +9,10 @@ USAGE
 
 require_tools() {
   command -v gh >/dev/null 2>&1 || { echo "gh CLI is required." >&2; exit 1; }
-  command -v jq >/dev/null 2>&1 || { echo "jq is required." >&2; exit 1; }
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "jq is required. Install with: brew install jq (macOS) or sudo apt-get install -y jq (Debian/Ubuntu)." >&2
+    exit 1
+  fi
   gh auth status >/dev/null 2>&1 || { echo "gh is not authenticated. Run: gh auth login" >&2; exit 1; }
 }
 

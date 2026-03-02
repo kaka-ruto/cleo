@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: fmt lint test smoke quality ci-status install-git-hooks
+.PHONY: fmt lint shellcheck test smoke clean quality ci-status install-git-hooks
 
 fmt:
 	@./scripts/fmt.sh
@@ -8,13 +8,19 @@ fmt:
 lint:
 	@./scripts/lint.sh
 
+shellcheck:
+	@./scripts/shellcheck.sh
+
 test:
 	@./scripts/test.sh
 
 smoke:
 	@./scripts/smoke.sh
 
-quality: fmt lint test smoke
+clean:
+	@./scripts/clean.sh
+
+quality: fmt lint shellcheck test smoke
 
 ci-status:
 	@./scripts/ci-status.sh --latest

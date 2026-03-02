@@ -34,8 +34,10 @@ go build ./cmd/cleo
 ```bash
 make fmt
 make lint
+make shellcheck
 make test
 make smoke
+make clean
 make quality
 make ci-status
 make install-git-hooks

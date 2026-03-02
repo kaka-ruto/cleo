@@ -43,6 +43,8 @@ cleo pr retarget <pr> --base <branch>
 cleo pr batch [--from <pr>] [--no-watch] [--no-run] [--no-rebase]
 ```
 
+`cleo pr` commands resolve the target repository from `cleo.yml` (`github.owner` + `github.repo`); there is no user-facing `--repo` flag.
+
 ## Tests
 
 ```bash

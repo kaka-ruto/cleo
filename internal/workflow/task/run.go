@@ -42,6 +42,17 @@ func Execute(a Actions, in Input) (Result, error) {
 		}
 		fmt.Printf("Task %d closed\n", id)
 		return Result{Name: "close"}, nil
+	case "work":
+		id, err := int64Flag(in.Args, "--id")
+		if err != nil {
+			return Result{}, err
+		}
+		text, err := a.Work(id)
+		if err != nil {
+			return Result{}, err
+		}
+		fmt.Println(text)
+		return Result{Name: "work"}, nil
 	default:
 		return Result{}, BuildUnknownError(in.Name)
 	}

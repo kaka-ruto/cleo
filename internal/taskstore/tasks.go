@@ -41,6 +41,7 @@ WHERE id = ?
 INSERT INTO tasks(
   session_id,
   repo_key,
+  work_branch,
   title,
   details,
   severity,
@@ -51,7 +52,7 @@ INSERT INTO tasks(
   updated_at,
   last_seen_at
 )
-VALUES(?, ?, ?, ?, ?, 'open', ?, 1, ?, ?, ?)
+VALUES(?, ?, '', ?, ?, ?, 'open', ?, 1, ?, ?, ?)
 `, in.SessionID, strings.TrimSpace(in.RepoKey), strings.TrimSpace(in.Title), strings.TrimSpace(in.Details), strings.TrimSpace(in.Severity), strings.TrimSpace(in.DedupeKey), created, created, created)
 	if err != nil {
 		return Task{}, false, fmt.Errorf("insert task: %w", err)
@@ -69,7 +70,7 @@ VALUES(?, ?, ?, ?, ?, 'open', ?, 1, ?, ?, ?)
 
 func (s *Store) openTaskByDedupe(ctx context.Context, repoKey, dedupeKey string) (*Task, error) {
 	row := s.db.QueryRowContext(ctx, `
-SELECT id, session_id, repo_key, title, details, severity, status, dedupe_key, occurrences, created_at, updated_at, last_seen_at
+SELECT id, session_id, repo_key, work_branch, title, details, severity, status, dedupe_key, occurrences, created_at, updated_at, last_seen_at
 FROM tasks
 WHERE repo_key = ? AND dedupe_key = ? AND status IN ('open', 'in_progress')
 ORDER BY id ASC
@@ -87,7 +88,7 @@ LIMIT 1
 
 func (s *Store) Task(ctx context.Context, id int64) (Task, error) {
 	row := s.db.QueryRowContext(ctx, `
-SELECT id, session_id, repo_key, title, details, severity, status, dedupe_key, occurrences, created_at, updated_at, last_seen_at
+SELECT id, session_id, repo_key, work_branch, title, details, severity, status, dedupe_key, occurrences, created_at, updated_at, last_seen_at
 FROM tasks
 WHERE id = ?
 `, id)
@@ -103,7 +104,7 @@ WHERE id = ?
 
 func (s *Store) TasksBySession(ctx context.Context, sessionID int64) ([]Task, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT id, session_id, repo_key, title, details, severity, status, dedupe_key, occurrences, created_at, updated_at, last_seen_at
+SELECT id, session_id, repo_key, work_branch, title, details, severity, status, dedupe_key, occurrences, created_at, updated_at, last_seen_at
 FROM tasks
 WHERE session_id = ?
 ORDER BY id ASC
@@ -129,7 +130,7 @@ ORDER BY id ASC
 func (s *Store) ListTasks(ctx context.Context, status string) ([]Task, error) {
 	status = strings.TrimSpace(status)
 	query := `
-SELECT id, session_id, repo_key, title, details, severity, status, dedupe_key, occurrences, created_at, updated_at, last_seen_at
+SELECT id, session_id, repo_key, work_branch, title, details, severity, status, dedupe_key, occurrences, created_at, updated_at, last_seen_at
 FROM tasks`
 	args := []any{}
 	if status != "" {
@@ -175,6 +176,25 @@ WHERE id = ?
 	return nil
 }
 
+func (s *Store) SetTaskWorkBranch(ctx context.Context, id int64, branch string, now time.Time) error {
+	res, err := s.db.ExecContext(ctx, `
+UPDATE tasks
+SET work_branch = ?, updated_at = ?
+WHERE id = ?
+`, strings.TrimSpace(branch), now.UTC().Format(time.RFC3339Nano), id)
+	if err != nil {
+		return fmt.Errorf("set task work branch: %w", err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("task work branch rows affected: %w", err)
+	}
+	if n == 0 {
+		return fmt.Errorf("task not found: %d", id)
+	}
+	return nil
+}
+
 type scanner interface {
 	Scan(dest ...any) error
 }
@@ -184,7 +204,7 @@ func scanTask(row scanner) (Task, error) {
 	var created string
 	var updated string
 	var seen string
-	err := row.Scan(&out.ID, &out.SessionID, &out.RepoKey, &out.Title, &out.Details, &out.Severity, &out.Status, &out.DedupeKey, &out.Occurrences, &created, &updated, &seen)
+	err := row.Scan(&out.ID, &out.SessionID, &out.RepoKey, &out.WorkBranch, &out.Title, &out.Details, &out.Severity, &out.Status, &out.DedupeKey, &out.Occurrences, &created, &updated, &seen)
 	if err != nil {
 		return Task{}, err
 	}

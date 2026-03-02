@@ -12,6 +12,7 @@ func PrintTask(out io.Writer) {
 	fmt.Fprintln(out, "  list [--status <open|in_progress|closed>]")
 	fmt.Fprintln(out, "  show --id <task-id>")
 	fmt.Fprintln(out, "  claim --id <task-id>")
+	fmt.Fprintln(out, "  work --id <task-id>")
 	fmt.Fprintln(out, "  close --id <task-id>")
 	fmt.Fprintln(out, "  help [command]")
 }
@@ -24,6 +25,8 @@ func PrintTaskCommand(out io.Writer, cmd string) bool {
 		fmt.Fprintln(out, "usage: cleo task show --id <task-id>")
 	case "claim":
 		fmt.Fprintln(out, "usage: cleo task claim --id <task-id>")
+	case "work":
+		fmt.Fprintln(out, "usage: cleo task work --id <task-id>")
 	case "close":
 		fmt.Fprintln(out, "usage: cleo task close --id <task-id>")
 	default:

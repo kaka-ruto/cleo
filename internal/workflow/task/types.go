@@ -25,4 +25,5 @@ type Actions interface {
 	Show(id int64) (string, error)
 	Claim(id int64) error
 	Close(id int64) error
+	Work(id int64) (string, error)
 }

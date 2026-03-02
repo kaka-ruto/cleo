@@ -6,16 +6,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cafaye/cleo/internal/config"
 	"github.com/cafaye/cleo/internal/taskstore"
 )
 
 type Adapter struct {
-	store *taskstore.Store
-	now   func() time.Time
+	store      *taskstore.Store
+	cfg        *config.Config
+	now        func() time.Time
+	runLocalFn func(name string, args ...string) (string, error)
 }
 
-func NewAdapter(store *taskstore.Store) *Adapter {
-	return &Adapter{store: store, now: time.Now}
+func NewAdapter(store *taskstore.Store, cfg *config.Config) *Adapter {
+	return &Adapter{store: store, cfg: cfg, now: time.Now, runLocalFn: runLocal}
 }
 
 func (a *Adapter) List(status string) (string, error) {
@@ -28,7 +31,11 @@ func (a *Adapter) List(status string) (string, error) {
 	}
 	var b strings.Builder
 	for _, task := range tasks {
-		fmt.Fprintf(&b, "#%d [%s] %s status=%s occurrences=%d\n", task.ID, task.Severity, task.Title, task.Status, task.Occurrences)
+		branch := task.WorkBranch
+		if strings.TrimSpace(branch) == "" {
+			branch = "-"
+		}
+		fmt.Fprintf(&b, "#%d [%s] %s status=%s occurrences=%d branch=%s\n", task.ID, task.Severity, task.Title, task.Status, task.Occurrences, branch)
 	}
 	return strings.TrimRight(b.String(), "\n"), nil
 }
@@ -38,7 +45,11 @@ func (a *Adapter) Show(id int64) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("Task #%d\nrepo=%s\nstatus=%s severity=%s\noccurrences=%d\n\ntitle: %s\n\ndetails:\n%s", task.ID, task.RepoKey, task.Status, task.Severity, task.Occurrences, task.Title, task.Details), nil
+	branch := task.WorkBranch
+	if strings.TrimSpace(branch) == "" {
+		branch = "-"
+	}
+	return fmt.Sprintf("Task #%d\nrepo=%s\nstatus=%s severity=%s\noccurrences=%d\nwork_branch=%s\n\ntitle: %s\n\ndetails:\n%s", task.ID, task.RepoKey, task.Status, task.Severity, task.Occurrences, branch, task.Title, task.Details), nil
 }
 
 func (a *Adapter) Claim(id int64) error {
@@ -47,4 +58,61 @@ func (a *Adapter) Claim(id int64) error {
 
 func (a *Adapter) Close(id int64) error {
 	return a.store.UpdateTaskStatus(context.Background(), id, "closed", a.now())
+}
+
+func (a *Adapter) Work(id int64) (string, error) {
+	task, err := a.store.Task(context.Background(), id)
+	if err != nil {
+		return "", err
+	}
+	if err := a.store.UpdateTaskStatus(context.Background(), id, "in_progress", a.now()); err != nil {
+		return "", err
+	}
+	current, err := a.runLocalFn("git", "branch", "--show-current")
+	if err != nil {
+		return "", err
+	}
+	currentBranch := strings.TrimSpace(current)
+	if currentBranch == "" {
+		return "", fmt.Errorf("cannot determine current branch")
+	}
+
+	workBranch := currentBranch
+	lane := "in-place"
+	if currentBranch == strings.TrimSpace(a.cfg.GitHub.BaseBranch) {
+		workBranch = branchForTask(task.ID, task.Title)
+		if _, err := a.runLocalFn("git", "checkout", "-b", workBranch); err != nil {
+			if _, checkoutErr := a.runLocalFn("git", "checkout", workBranch); checkoutErr != nil {
+				return "", err
+			}
+		}
+		lane = "new-branch"
+	}
+
+	if err := a.store.SetTaskWorkBranch(context.Background(), id, workBranch, a.now()); err != nil {
+		return "", err
+	}
+	eventPayload := fmt.Sprintf("lane=%s current=%s work=%s", lane, currentBranch, workBranch)
+	if err := a.store.AddTaskEvent(context.Background(), id, "work_started", eventPayload, a.now()); err != nil {
+		return "", err
+	}
+
+	var lines []string
+	lines = append(lines, fmt.Sprintf("Task %d is now in progress.", id))
+	lines = append(lines, fmt.Sprintf("Work lane: %s", lane))
+	lines = append(lines, fmt.Sprintf("Working branch: %s", workBranch))
+	lines = append(lines, "")
+	lines = append(lines, "Required auditability:")
+	lines = append(lines, fmt.Sprintf("- Include commit trailer: Task: #%d", id))
+	lines = append(lines, "- Keep commit scope limited to this task.")
+	lines = append(lines, "")
+	lines = append(lines, "Suggested next steps:")
+	lines = append(lines, "1. Implement and commit with the required trailer.")
+	lines = append(lines, "2. Run make quality.")
+	if lane == "new-branch" {
+		lines = append(lines, "3. Push branch and open PR with cleo pr create.")
+	} else {
+		lines = append(lines, "3. Update the current PR or open one with cleo pr create if needed.")
+	}
+	return strings.Join(lines, "\n"), nil
 }

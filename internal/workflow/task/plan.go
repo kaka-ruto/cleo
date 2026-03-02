@@ -21,6 +21,11 @@ func BuildPlan(in Input) (Plan, error) {
 			return Plan{}, fmt.Errorf("usage: cleo task close --id <task-id>")
 		}
 		return Plan{Name: "close", Description: "Close task"}, nil
+	case "work":
+		if flagValue(in.Args, "--id") == "" {
+			return Plan{}, fmt.Errorf("usage: cleo task work --id <task-id>")
+		}
+		return Plan{Name: "work", Description: "Start work lane for task"}, nil
 	default:
 		return Plan{}, fmt.Errorf("unknown task command: %s", in.Name)
 	}

@@ -30,6 +30,7 @@ type Task struct {
 	ID          int64
 	SessionID   int64
 	RepoKey     string
+	WorkBranch  string
 	Title       string
 	Details     string
 	Severity    string
@@ -93,9 +94,23 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE INDEX IF NOT EXISTS idx_tasks_session_id ON tasks(session_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_repo_status ON tasks(repo_key, status);
 CREATE INDEX IF NOT EXISTS idx_tasks_dedupe ON tasks(repo_key, dedupe_key);
+
+CREATE TABLE IF NOT EXISTS task_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  task_id INTEGER NOT NULL,
+  event_type TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY(task_id) REFERENCES tasks(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_events_task_id ON task_events(task_id);
 `
 	if _, err := s.db.ExecContext(ctx, schema); err != nil {
 		return fmt.Errorf("migrate sqlite schema: %w", err)
+	}
+	if _, err := s.db.ExecContext(ctx, "ALTER TABLE tasks ADD COLUMN work_branch TEXT NOT NULL DEFAULT ''"); err != nil && !isDuplicateColumnError(err) {
+		return fmt.Errorf("migrate task work_branch column: %w", err)
 	}
 	return nil
 }

@@ -19,6 +19,22 @@ Guidance for agents working in this repository.
 - Use `--non-interactive` in agent/automation contexts to avoid stalls.
 - After every significant improvement, publish a release using `cleo release plan|cut|publish|verify`.
 
+## Local Commands
+
+- Prefer Make targets over direct script or raw tool invocation.
+- Canonical commands:
+  - `make fmt`
+  - `make lint`
+  - `make shellcheck`
+  - `make test`
+  - `make smoke`
+  - `make quality`
+  - `make ci-status`
+  - `make clean`
+  - `make install-git-hooks`
+- Default pre-PR validation: run `make quality`.
+- Use `go test ./...` only for targeted fast checks while iterating; before handoff, run `make quality`.
+
 ## Intent Mapping
 
 - "create/open PR" -> `cleo pr create`

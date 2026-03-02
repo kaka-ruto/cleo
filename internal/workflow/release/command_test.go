@@ -29,3 +29,10 @@ func TestExecutePublish(t *testing.T) {
 		t.Fatalf("unexpected publish call: version=%s draft=%v notes=%v", f.publishedVersion, f.draft, f.notes)
 	}
 }
+
+func TestPrintOutcome(t *testing.T) {
+	printOutcome(Plan{Name: "plan", Version: "v1.0.0"})
+	printOutcome(Plan{Name: "cut", Version: "v1.0.0"})
+	printOutcome(Plan{Name: "publish", Version: "v1.0.0"})
+	printOutcome(Plan{Name: "verify", Version: "v1.0.0"})
+}

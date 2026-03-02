@@ -24,6 +24,31 @@ All notable changes to this project will be documented in this file.
 
 - Add verification commands/results for unreleased work.
 
+## [v0.1.4]
+
+### Summary
+
+- Improved PR check reliability and update UX clarity for agent-driven workflows.
+
+### Highlights
+
+- Improved `cleo pr gate` to block on pending or missing checks with explicit `cleo pr watch <pr>` guidance.
+- Improved `cleo pr checks` diagnostics with pending/failed summaries and traceability hints.
+- Improved `cleo update` logs with current/latest version visibility and clear progress messaging.
+
+### Breaking Changes
+
+- None.
+
+### Migration Notes
+
+- None.
+
+### Verification
+
+- `go test ./...`
+- `cleo update`
+
 ## [v0.1.3]
 
 ### Summary

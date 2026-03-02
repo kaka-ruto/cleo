@@ -212,7 +212,7 @@ func runQA(args []string) int {
 		return 1
 	}
 	defer func() { _ = store.Close() }()
-	cmd := workflowqa.New(workflowqa.NewAdapter(store, state.RepoKey(cfg)))
+	cmd := workflowqa.New(workflowqa.NewAdapter(store, state.RepoKey(cfg), cfg))
 	if err := cmd.Execute(args[2], args[3:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1

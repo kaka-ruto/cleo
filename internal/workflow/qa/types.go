@@ -25,4 +25,6 @@ type Actions interface {
 	LogIssue(sessionID int64, title string, details string, severity string) (int64, bool, error)
 	Finish(sessionID int64, verdict string) error
 	Report(sessionID int64) (string, error)
+	Plan(sessionID int64, env string, profiles []string) (string, error)
+	Run(sessionID int64, env string, profiles []string) (string, error)
 }

@@ -67,6 +67,13 @@ type Config struct {
 		GenerateNotes bool   `yaml:"generate_notes"`
 		DefaultDraft  bool   `yaml:"default_draft"`
 	} `yaml:"release"`
+	QA struct {
+		ProfilesDir     string   `yaml:"profiles_dir"`
+		RunbooksDir     string   `yaml:"runbooks_dir"`
+		EnvironmentsDir string   `yaml:"environments_dir"`
+		DefaultProfiles []string `yaml:"default_profiles"`
+		DefaultEnv      string   `yaml:"default_env"`
+	} `yaml:"qa"`
 }
 
 func Load(path string) (*Config, error) {
@@ -141,6 +148,18 @@ func (c *Config) applyDefaults() {
 	}
 	if c.Release.BuildTarget == "" {
 		c.Release.BuildTarget = "./cmd/cleo"
+	}
+	if c.QA.ProfilesDir == "" {
+		c.QA.ProfilesDir = ".cleo/qa/profiles"
+	}
+	if c.QA.RunbooksDir == "" {
+		c.QA.RunbooksDir = ".cleo/qa/runbooks"
+	}
+	if c.QA.EnvironmentsDir == "" {
+		c.QA.EnvironmentsDir = ".cleo/qa/environments"
+	}
+	if c.QA.DefaultEnv == "" {
+		c.QA.DefaultEnv = "local"
 	}
 }
 

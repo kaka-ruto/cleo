@@ -50,6 +50,28 @@ func Execute(a Actions, in Input) (Result, error) {
 		}
 		fmt.Println(text)
 		return Result{Name: "report"}, nil
+	case "plan":
+		sessionID, err := int64Flag(in.Args, "--session")
+		if err != nil {
+			return Result{}, err
+		}
+		text, err := a.Plan(sessionID, flagValue(in.Args, "--env"), profileList(flagValue(in.Args, "--profiles")))
+		if err != nil {
+			return Result{}, err
+		}
+		fmt.Println(text)
+		return Result{Name: "plan"}, nil
+	case "run":
+		sessionID, err := int64Flag(in.Args, "--session")
+		if err != nil {
+			return Result{}, err
+		}
+		text, err := a.Run(sessionID, flagValue(in.Args, "--env"), profileList(flagValue(in.Args, "--profiles")))
+		if err != nil {
+			return Result{}, err
+		}
+		fmt.Println(text)
+		return Result{Name: "run"}, nil
 	default:
 		return Result{}, BuildUnknownError(in.Name)
 	}

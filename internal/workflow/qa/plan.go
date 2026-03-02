@@ -24,6 +24,16 @@ func BuildPlan(in Input) (Plan, error) {
 			return Plan{}, fmt.Errorf("usage: cleo qa report --session <id>")
 		}
 		return Plan{Name: "report", Description: "Print QA session report", ReadOnly: true}, nil
+	case "plan":
+		if flagValue(in.Args, "--session") == "" {
+			return Plan{}, fmt.Errorf("usage: cleo qa plan --session <id> [--env <name>] [--profiles <a,b>]")
+		}
+		return Plan{Name: "plan", Description: "Resolve QA profiles and runbooks", ReadOnly: true}, nil
+	case "run":
+		if flagValue(in.Args, "--session") == "" {
+			return Plan{}, fmt.Errorf("usage: cleo qa run --session <id> [--env <name>] [--profiles <a,b>]")
+		}
+		return Plan{Name: "run", Description: "Execute QA runbooks"}, nil
 	default:
 		return Plan{}, fmt.Errorf("unknown qa command: %s", in.Name)
 	}

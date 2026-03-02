@@ -3,6 +3,7 @@ package qa
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 func hasFlag(args []string, key string) bool {
@@ -33,4 +34,20 @@ func int64Flag(args []string, key string) (int64, error) {
 		return 0, fmt.Errorf("%s must be an integer", key)
 	}
 	return id, nil
+}
+
+func profileList(raw string) []string {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return nil
+	}
+	parts := strings.Split(trimmed, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		name := strings.TrimSpace(part)
+		if name != "" {
+			out = append(out, name)
+		}
+	}
+	return out
 }

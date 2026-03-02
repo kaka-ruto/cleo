@@ -57,3 +57,11 @@ release:
   build_target: "./cmd/cleo"
   generate_notes: true
   default_draft: false
+
+qa:
+  profiles_dir: ".cleo/qa/profiles"
+  runbooks_dir: ".cleo/qa/runbooks"
+  environments_dir: ".cleo/qa/environments"
+  default_profiles:
+    - "core"
+  default_env: "local"

@@ -1,0 +1,4 @@
+name: local
+description: Local developer environment for deterministic QA checks.
+vars:
+  CLEO_QA_ENV: local

@@ -1,0 +1,15 @@
+name: local-go-quality
+description: Run deterministic local quality gates for Go changes.
+checks:
+  - id: fmt
+    title: Go formatting and lint wrappers are valid
+    command: make fmt
+    severity: medium
+    failure_title: Formatting check failed
+    failure_details: make fmt failed for current branch changes.
+  - id: test
+    title: Unit and integration tests pass
+    command: make test
+    severity: high
+    failure_title: Test suite failed
+    failure_details: make test failed for current branch changes.

@@ -1,0 +1,4 @@
+name: core
+description: Core quality checks for cleo repository changes.
+runbooks:
+  - local-go-quality

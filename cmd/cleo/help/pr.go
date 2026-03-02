@@ -1,26 +1,11 @@
-package main
+package help
 
 import (
 	"fmt"
 	"io"
 )
 
-func printRootHelp(out io.Writer) {
-	fmt.Fprintln(out, "usage: cleo <command>")
-	fmt.Fprintln(out, "")
-	fmt.Fprintln(out, "commands:")
-	fmt.Fprintln(out, "  setup       Run setup wizard for current repository")
-	fmt.Fprintln(out, "  pr          Run PR automation commands")
-	fmt.Fprintln(out, "  version     Print cleo version")
-	fmt.Fprintln(out, "  help        Show help")
-	fmt.Fprintln(out, "")
-	fmt.Fprintln(out, "examples:")
-	fmt.Fprintln(out, "  cleo setup")
-	fmt.Fprintln(out, "  cleo pr help")
-	fmt.Fprintln(out, "  cleo pr status 123")
-}
-
-func printPRHelp(out io.Writer) {
+func PrintPR(out io.Writer) {
 	fmt.Fprintln(out, "usage: cleo pr <command>")
 	fmt.Fprintln(out, "")
 	fmt.Fprintln(out, "commands:")
@@ -42,7 +27,7 @@ func printPRHelp(out io.Writer) {
 	fmt.Fprintln(out, "  cleo pr merge 123 --delete-branch")
 }
 
-func printPRCommandHelp(out io.Writer, cmd string) bool {
+func PrintPRCommand(out io.Writer, cmd string) bool {
 	switch cmd {
 	case "status":
 		fmt.Fprintln(out, "usage: cleo pr status <pr>")

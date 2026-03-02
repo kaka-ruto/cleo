@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cafaye/cleo/cmd/cleo/help"
 	"github.com/cafaye/cleo/internal/config"
 	"github.com/cafaye/cleo/internal/pr"
 	"github.com/cafaye/cleo/internal/setup"
@@ -19,7 +20,7 @@ func main() {
 
 func run(args []string) int {
 	if len(args) == 1 {
-		printRootHelp(os.Stdout)
+		help.PrintRoot(os.Stdout)
 		return 0
 	}
 	if args[1] == "version" || args[1] == "--version" {
@@ -28,10 +29,10 @@ func run(args []string) int {
 	}
 	if args[1] == "help" || args[1] == "--help" || args[1] == "-h" {
 		if len(args) > 2 && args[2] == "pr" {
-			printPRHelp(os.Stdout)
+			help.PrintPR(os.Stdout)
 			return 0
 		}
-		printRootHelp(os.Stdout)
+		help.PrintRoot(os.Stdout)
 		return 0
 	}
 	if args[1] == "setup" {
@@ -46,21 +47,21 @@ func run(args []string) int {
 	}
 	if args[1] != "pr" {
 		fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", args[1])
-		printRootHelp(os.Stderr)
+		help.PrintRoot(os.Stderr)
 		return 2
 	}
 	if len(args) < 3 {
-		printPRHelp(os.Stdout)
+		help.PrintPR(os.Stdout)
 		return 0
 	}
 	if args[2] == "help" || args[2] == "--help" || args[2] == "-h" {
-		if len(args) > 3 && !printPRCommandHelp(os.Stdout, args[3]) {
+		if len(args) > 3 && !help.PrintPRCommand(os.Stdout, args[3]) {
 			fmt.Fprintf(os.Stderr, "unknown pr command: %s\n\n", args[3])
-			printPRHelp(os.Stderr)
+			help.PrintPR(os.Stderr)
 			return 2
 		}
 		if len(args) <= 3 {
-			printPRHelp(os.Stdout)
+			help.PrintPR(os.Stdout)
 		}
 		return 0
 	}

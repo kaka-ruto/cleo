@@ -63,7 +63,7 @@ Use this copy-ready template:
 
 ## Update cleo
 
-Update to latest `master` installer:
+Update from the latest GitHub release:
 
 ```bash
 cleo update
@@ -73,12 +73,6 @@ Non-interactive update:
 
 ```bash
 cleo update --non-interactive
-```
-
-Update from a specific ref (commit, tag, or branch):
-
-```bash
-cleo update --ref 9060afa
 ```
 
 ## One-Command Uninstall

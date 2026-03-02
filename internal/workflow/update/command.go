@@ -1,35 +1,18 @@
 package update
 
-import (
-	"fmt"
-	"os"
-	"os/exec"
-)
+import "fmt"
 
-const defaultRef = "master"
-
-type Command struct{}
+type Command struct {
+	updater *ReleaseUpdater
+}
 
 func New() *Command {
-	return &Command{}
+	return &Command{updater: NewReleaseUpdater()}
 }
 
-func (c *Command) Execute(nonInteractive bool, ref string) error {
-	ref = resolveRef(ref)
-	scriptURL := fmt.Sprintf("https://raw.githubusercontent.com/cafaye/cleo/%s/install.sh", ref)
-	cmd := exec.Command("bash", "-c", "curl -fsSL "+scriptURL+" | bash")
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if nonInteractive {
-		cmd.Env = append(os.Environ(), "NON_INTERACTIVE=1")
+func (c *Command) Execute(_ bool) error {
+	if err := c.updater.UpdateLatest(); err != nil {
+		return fmt.Errorf("release update failed: %w", err)
 	}
-	return cmd.Run()
-}
-
-func resolveRef(ref string) string {
-	if ref == "" {
-		return defaultRef
-	}
-	return ref
+	return nil
 }

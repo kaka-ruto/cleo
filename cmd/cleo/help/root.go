@@ -10,7 +10,7 @@ func PrintRoot(out io.Writer) {
 	fmt.Fprintln(out, "")
 	fmt.Fprintln(out, "commands:")
 	fmt.Fprintln(out, "  setup       Run setup wizard for current repository")
-	fmt.Fprintln(out, "  update      Update cleo to latest installer version")
+	fmt.Fprintln(out, "  update      Update cleo from latest GitHub release")
 	fmt.Fprintln(out, "  pr          Run PR automation commands")
 	fmt.Fprintln(out, "  release     Run release workflow commands")
 	fmt.Fprintln(out, "  version     Print cleo version")
@@ -32,7 +32,7 @@ func PrintCommand(out io.Writer, cmd string) bool {
 	case "setup":
 		fmt.Fprintln(out, "usage: cleo setup [--non-interactive]")
 	case "update":
-		fmt.Fprintln(out, "usage: cleo update [--non-interactive] [--ref <commit|tag|branch>]")
+		fmt.Fprintln(out, "usage: cleo update [--non-interactive]")
 	case "pr":
 		fmt.Fprintln(out, "usage: cleo pr <command>")
 	case "release":

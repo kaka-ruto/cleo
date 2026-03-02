@@ -56,7 +56,7 @@ func run(args []string) int {
 		return 0
 	}
 	if args[1] == "update" {
-		if err := workflowupdate.New().Execute(hasFlag(args[2:], "--non-interactive"), flagValue(args[2:], "--ref")); err != nil {
+		if err := workflowupdate.New().Execute(hasFlag(args[2:], "--non-interactive")); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}

@@ -8,18 +8,8 @@ import (
 
 func (w *Wizard) writeConfig() error {
 	if _, err := os.Stat("cleo.yml"); err == nil {
-		if w.Options.NonInteractive {
-			fmt.Fprintln(w.Stdout, "Keeping existing cleo.yml (non-interactive mode).")
-			return nil
-		}
-		overwrite, err := w.confirm("cleo.yml already exists. Overwrite?")
-		if err != nil {
-			return err
-		}
-		if !overwrite {
-			fmt.Fprintln(w.Stdout, "Keeping existing cleo.yml")
-			return nil
-		}
+		fmt.Fprintln(w.Stdout, "Keeping existing cleo.yml")
+		return nil
 	}
 	repo, err := discoverRepoSlug()
 	if err != nil {

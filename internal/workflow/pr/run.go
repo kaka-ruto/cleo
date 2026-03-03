@@ -83,6 +83,7 @@ func runCreate(a Actions, args []string) (Result, error) {
 		flagValue(args, "--risk"),
 		flagValue(args, "--rollback"),
 		flagValue(args, "--owner"),
+		flagValue(args, "--ac"),
 		flagValues(args, "--cmd"),
 		hasFlag(args, "--draft"),
 	)

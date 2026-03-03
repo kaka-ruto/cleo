@@ -31,5 +31,5 @@ type Actions interface {
 	Batch(start int, noWatch bool, noRun bool, noRebase bool) error
 	Rebase(pr string) error
 	Retarget(pr, base string) error
-	Create(title, summary, why, what, test, risk, rollback, owner string, cmds []string, draft bool) error
+	Create(title, summary, why, what, test, risk, rollback, owner, ac string, cmds []string, draft bool) error
 }

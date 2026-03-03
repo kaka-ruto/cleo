@@ -57,3 +57,11 @@ release:
   build_target: "./cmd/cleo"
   generate_notes: true
   default_draft: false
+
+qa:
+  actors_dir: ".cleo/qa/actors"
+  evidence_dir: ".cleo/evidence"
+  default_actors:
+    - "core"
+  manual:
+    enabled: true

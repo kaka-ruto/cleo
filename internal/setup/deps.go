@@ -35,6 +35,17 @@ func (w *Wizard) checkOrInstall(bin string) error {
 	return nil
 }
 
+func (w *Wizard) ensurePlaywrightRuntime() error {
+	if !hasCommand("go") {
+		return fmt.Errorf("go is required to install Playwright runtime")
+	}
+	fmt.Fprintln(w.Stdout, "Ensuring Playwright Chromium runtime for QA browser actions...")
+	if err := runStreaming(w.Stdin, w.Stdout, w.Stderr, "go", "run", "github.com/playwright-community/playwright-go/cmd/playwright@v0.5200.1", "install", "chromium"); err != nil {
+		return fmt.Errorf("install playwright runtime: %w", err)
+	}
+	return nil
+}
+
 func (w *Wizard) fallbackInstall(bin string, installErr error) error {
 	if bin != "gum" || !hasCommand("go") {
 		return installErr
@@ -127,6 +138,8 @@ func linuxPackageName(bin string) string {
 		return "golang-go"
 	case "gh":
 		return "gh"
+	case "node":
+		return "nodejs"
 	default:
 		return bin
 	}

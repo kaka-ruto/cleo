@@ -6,6 +6,7 @@ BRANCH="${BRANCH:-master}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-0}"
 REQUIRED_GO_VERSION="${REQUIRED_GO_VERSION:-1.25.1}"
+PLAYWRIGHT_GO_VERSION="${PLAYWRIGHT_GO_VERSION:-v0.5200.1}"
 if [[ "$NON_INTERACTIVE" == "1" ]]; then
   export DEBIAN_FRONTEND=noninteractive
 fi
@@ -73,6 +74,10 @@ install_gum_with_go() {
 
 map_pkg_name() {
   local pkg="$1"
+  if [[ "$pkg" == "node" ]]; then
+    echo "node"
+    return
+  fi
   echo "$pkg"
 }
 
@@ -141,11 +146,21 @@ ensure_dep() {
   fi
 }
 
+ensure_playwright_runtime() {
+  echo "==> Installing Playwright Chromium runtime"
+  local playwright_module
+  playwright_module="github.com/playwright-community/playwright-go/cmd/playwright@${PLAYWRIGHT_GO_VERSION}"
+  go run "$playwright_module" install chromium
+}
+
 echo "==> Cleo one-command install"
 ensure_dep git
 ensure_go
 ensure_dep gh
 ensure_dep gum
+ensure_dep node
+
+ensure_playwright_runtime
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT

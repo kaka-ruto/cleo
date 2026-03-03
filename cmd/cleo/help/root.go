@@ -13,6 +13,8 @@ func PrintRoot(out io.Writer) {
 	fmt.Fprintln(out, "  update      Update cleo from latest GitHub release")
 	fmt.Fprintln(out, "  pr          Run PR automation commands")
 	fmt.Fprintln(out, "  release     Run release workflow commands")
+	fmt.Fprintln(out, "  qa          Run QA session commands")
+	fmt.Fprintln(out, "  task        Run QA task board commands")
 	fmt.Fprintln(out, "  version     Print cleo version")
 	fmt.Fprintln(out, "  help        Show help")
 	fmt.Fprintln(out, "")
@@ -24,6 +26,8 @@ func PrintRoot(out io.Writer) {
 	fmt.Fprintln(out, "  cleo update")
 	fmt.Fprintln(out, "  cleo pr help")
 	fmt.Fprintln(out, "  cleo release help")
+	fmt.Fprintln(out, "  cleo qa help")
+	fmt.Fprintln(out, "  cleo task help")
 	fmt.Fprintln(out, "  cleo pr status 123")
 }
 
@@ -37,6 +41,10 @@ func PrintCommand(out io.Writer, cmd string) bool {
 		fmt.Fprintln(out, "usage: cleo pr <command>")
 	case "release":
 		fmt.Fprintln(out, "usage: cleo release <command>")
+	case "qa":
+		fmt.Fprintln(out, "usage: cleo qa <command>")
+	case "task":
+		fmt.Fprintln(out, "usage: cleo task <command>")
 	case "version":
 		fmt.Fprintln(out, "usage: cleo version")
 	default:

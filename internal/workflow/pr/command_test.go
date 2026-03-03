@@ -18,7 +18,7 @@ func (f *fakeActions) Merge(string, bool, bool, bool, bool) error {
 func (f *fakeActions) Batch(int, bool, bool, bool) error { return nil }
 func (f *fakeActions) Rebase(string) error               { return nil }
 func (f *fakeActions) Retarget(string, string) error     { return nil }
-func (f *fakeActions) Create(string, string, string, string, string, string, string, string, []string, bool) error {
+func (f *fakeActions) Create(string, string, string, string, string, string, string, string, string, []string, bool) error {
 	return nil
 }
 

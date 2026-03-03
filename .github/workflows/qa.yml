@@ -1,0 +1,159 @@
+name: qa
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  workflow_run:
+    workflows:
+      - ci
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHA: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha || github.sha }}
+      BRANCH: ${{ github.event.pull_request.head.ref || github.event.workflow_run.head_branch || github.ref_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh shellcheck nodejs
+
+      - name: Resolve PR context
+        id: ctx
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            pr_number="${{ github.event.pull_request.number }}"
+          else
+            pr_number="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' || true)"
+          fi
+          if [[ -z "$pr_number" || "$pr_number" == "null" ]]; then
+            echo "has_pr=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_pr=true" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for CI success
+        if: steps.ctx.outputs.has_pr == 'true' && github.event_name == 'pull_request'
+        shell: bash
+        env:
+          PR_NUMBER: ${{ steps.ctx.outputs.pr_number }}
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 60); do
+            ci_conclusion="$(gh run list --workflow ci.yml --branch "$BRANCH" --event pull_request --json conclusion,status --jq '.[0].conclusion' || true)"
+            ci_status="$(gh run list --workflow ci.yml --branch "$BRANCH" --event pull_request --json conclusion,status --jq '.[0].status' || true)"
+            if [[ "$ci_status" == "completed" && "$ci_conclusion" == "success" ]]; then
+              echo "CI succeeded; continuing to QA."
+              exit 0
+            fi
+            if [[ "$ci_status" == "completed" && "$ci_conclusion" != "success" ]]; then
+              echo "CI completed with conclusion=$ci_conclusion; skipping/failing QA."
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "Timed out waiting for CI to complete."
+          exit 1
+
+      - name: Skip when no PR context
+        if: steps.ctx.outputs.has_pr != 'true'
+        run: |
+          echo "Skipping QA run: no open PR for branch $BRANCH."
+
+      - name: Evaluate PR QA policy
+        id: policy
+        if: steps.ctx.outputs.has_pr == 'true'
+        shell: bash
+        env:
+          PR_NUMBER: ${{ steps.ctx.outputs.pr_number }}
+        run: |
+          set -euo pipefail
+          body="$(gh pr view "$PR_NUMBER" --json body --jq .body)"
+
+          if ! grep -q "<!-- cleo-ac:start -->" <<< "$body" || ! grep -q "<!-- cleo-ac:end -->" <<< "$body"; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "reason=no_ac" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          policy="$(awk '/<!-- cleo-qa-policy:start -->/{flag=1;next}/<!-- cleo-qa-policy:end -->/{flag=0}flag' <<< "$body")"
+          mode="$(awk -F: '/^mode:/{print $2; exit}' <<< "$policy" | xargs || true)"
+          if [[ -z "$mode" ]]; then
+            mode="auto"
+          fi
+
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "reason=policy" >> "$GITHUB_OUTPUT"
+
+      - name: Skip QA
+        if: steps.policy.outputs.run != 'true'
+        run: |
+          echo "Skipping QA run: ${{ steps.policy.outputs.reason }}"
+
+      - name: Run PR QA session
+        if: steps.policy.outputs.run == 'true'
+        id: runqa
+        shell: bash
+        env:
+          PR_NUMBER: ${{ steps.ctx.outputs.pr_number }}
+          QA_MODE: ${{ steps.policy.outputs.mode }}
+        run: |
+          set -euo pipefail
+          short_sha="$(printf "%s" "$SHA" | cut -c1-7)"
+          goals="CI-gated QA run for PR #${PR_NUMBER} (${short_sha})"
+          sid="$(go run ./cmd/cleo qa start --source pr --ref "$PR_NUMBER" --goals "$goals" | awk '{print $4}')"
+          echo "sid=$sid" >> "$GITHUB_OUTPUT"
+
+          go run ./cmd/cleo qa plan --session "$sid"
+          go run ./cmd/cleo qa doctor --session "$sid"
+
+          set +e
+          go run ./cmd/cleo qa run --session "$sid" --mode "$QA_MODE"
+          run_status=$?
+          set -e
+
+          verdict="pass"
+          if [[ "$run_status" -ne 0 ]]; then
+            verdict="fail"
+          fi
+          go run ./cmd/cleo qa finish --session "$sid" --verdict "$verdict"
+          go run ./cmd/cleo qa report --session "$sid"
+
+          exit "$run_status"

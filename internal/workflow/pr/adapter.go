@@ -28,6 +28,6 @@ func (a *Adapter) Rebase(pr string) error { return a.service.Rebase(pr) }
 func (a *Adapter) Retarget(pr, base string) error {
 	return a.service.Retarget(pr, base)
 }
-func (a *Adapter) Create(title, summary, why, what, test, risk, rollback, owner string, cmds []string, draft bool) error {
-	return a.service.Create(title, summary, why, what, test, risk, rollback, owner, cmds, draft)
+func (a *Adapter) Create(title, summary, why, what, test, risk, rollback, owner, ac string, cmds []string, draft bool) error {
+	return a.service.Create(title, summary, why, what, test, risk, rollback, owner, ac, cmds, draft)
 }

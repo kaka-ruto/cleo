@@ -67,6 +67,14 @@ type Config struct {
 		GenerateNotes bool   `yaml:"generate_notes"`
 		DefaultDraft  bool   `yaml:"default_draft"`
 	} `yaml:"release"`
+	QA struct {
+		ActorsDir     string   `yaml:"actors_dir"`
+		EvidenceDir   string   `yaml:"evidence_dir"`
+		DefaultActors []string `yaml:"default_actors"`
+		Manual        struct {
+			Enabled *bool `yaml:"enabled"`
+		} `yaml:"manual"`
+	} `yaml:"qa"`
 }
 
 func Load(path string) (*Config, error) {
@@ -142,6 +150,23 @@ func (c *Config) applyDefaults() {
 	if c.Release.BuildTarget == "" {
 		c.Release.BuildTarget = "./cmd/cleo"
 	}
+	if c.QA.ActorsDir == "" {
+		c.QA.ActorsDir = ".cleo/qa/actors"
+	}
+	if c.QA.EvidenceDir == "" {
+		c.QA.EvidenceDir = ".cleo/evidence"
+	}
+}
+
+func (c *Config) QAManualEnabled() bool {
+	if c.QA.Manual.Enabled == nil {
+		return true
+	}
+	return *c.QA.Manual.Enabled
+}
+
+func (c *Config) QAEvidenceDir() string {
+	return c.QA.EvidenceDir
 }
 
 func (c *Config) validate() error {

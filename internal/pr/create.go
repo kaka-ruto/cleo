@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (s *Service) Create(title, summary, why, what, test, risk, rollback, owner string, cmds []string, draft bool) error {
+func (s *Service) Create(title, summary, why, what, test, risk, rollback, owner, ac string, cmds []string, draft bool) error {
 	branch, err := runLocal("git", "branch", "--show-current")
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func (s *Service) Create(title, summary, why, what, test, risk, rollback, owner 
 	if title == "" {
 		return fmt.Errorf("title or summary is required")
 	}
-	body := Render(summary, why, what, test, risk, rollback, owner, cmds)
+	body := Render(summary, why, what, test, risk, rollback, owner, ac, cmds)
 	tmp, err := os.CreateTemp("", "cleo-pr-body-*.md")
 	if err != nil {
 		return err
@@ -41,9 +41,9 @@ func (s *Service) Create(title, summary, why, what, test, risk, rollback, owner 
 	return err
 }
 
-func Render(summary, why, what, test, risk, rollback, owner string, cmds []string) string {
+func Render(summary, why, what, test, risk, rollback, owner, ac string, cmds []string) string {
 	fields := withDefaults(summary, why, what, test, risk, rollback, owner)
-	return fmt.Sprintf(prBodyTemplate, fields.summary, fields.why, fields.what, fields.test, fields.risk, fields.rollback, fields.owner, renderCommandLines(cmds))
+	return fmt.Sprintf(prBodyTemplate, fields.summary, fields.why, fields.what, fields.test, fields.risk, fields.rollback, fields.owner, renderACBlock(ac), renderCommandLines(cmds))
 }
 
 type prFields struct {
@@ -107,6 +107,9 @@ const prBodyTemplate = `## Summary
 ## Ownership
 - Primary: %s
 - Backup: TBD
+
+## Acceptance Criteria
+%s
 
 ## Observability
 - Expected signals: TBD

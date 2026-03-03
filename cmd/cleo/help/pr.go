@@ -44,7 +44,7 @@ func PrintPRCommand(out io.Writer, cmd string) bool {
 	case "run":
 		fmt.Fprintln(out, "usage: cleo pr run <pr> [--dry]")
 	case "create":
-		fmt.Fprintln(out, "usage: cleo pr create [--title ...] [--summary ...] [--why ...] [--what ...] [--test ...] [--risk ...] [--rollback ...] [--owner ...] [--cmd ...] [--draft]")
+		fmt.Fprintln(out, "usage: cleo pr create [--title ...] [--summary ...] [--why ...] [--what ...] [--test ...] [--risk ...] [--rollback ...] [--owner ...] [--ac ...] [--cmd ...] [--draft]")
 	case "merge":
 		fmt.Fprintln(out, "usage: cleo pr merge <pr> [--no-watch] [--no-run] [--no-rebase] [--delete-branch]")
 	case "batch":

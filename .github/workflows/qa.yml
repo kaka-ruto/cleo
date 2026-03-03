@@ -73,13 +73,13 @@ jobs:
           echo "Skipping QA run: no open PR for this branch."
 
       - name: Skip draft PR
-        if: steps.ctx.outputs.has_pr == 'true' && steps.ctx.outputs.pr_draft == 'true'
+        if: "steps.ctx.outputs.has_pr == 'true' && steps.ctx.outputs.pr_draft == 'true'"
         run: |
           echo "Skipping QA run: PR is draft."
 
       - name: Evaluate PR QA policy
         id: policy
-        if: steps.ctx.outputs.has_pr == 'true' && steps.ctx.outputs.pr_draft != 'true'
+        if: "steps.ctx.outputs.has_pr == 'true' && steps.ctx.outputs.pr_draft != 'true'"
         shell: bash
         env:
           PR_NUMBER: ${{ steps.ctx.outputs.pr_number }}

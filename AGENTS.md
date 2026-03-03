@@ -15,6 +15,7 @@ Guidance for agents working in this repository.
 
 - PR work: start with `cleo pr help`, then use `cleo pr ...`.
 - Release work: start with `cleo release help`, then use `cleo release ...`.
+- QA work: start with `cleo qa help`, then use `cleo qa ...`.
 - Do not jump to raw `gh` unless `cleo` has no equivalent.
 - Use `--non-interactive` in agent/automation contexts to avoid stalls.
 - After every significant improvement, publish a release using `cleo release plan|cut|publish|verify`.
@@ -42,6 +43,22 @@ Guidance for agents working in this repository.
 - "merge PR" -> `cleo pr merge <pr>`
 - "new release" -> `cleo release plan|cut|publish|verify`
 - Go release explicitly -> `cleo release go plan|cut|publish|verify`
+- "start QA from PR AC block" -> `cleo qa start --source pr --ref <pr> --goals <text>`
+- "plan QA from AC" -> `cleo qa plan --session <id>`
+- "run QA guidance" -> `cleo qa run --session <id>`
+- "log QA findings as tasks" -> `cleo qa log --session <id> --title <text> --details <text>`
+
+## QA Contract
+
+- Acceptance Criteria in PRs and `cleo qa start --ac` must be BDD-style YAML.
+- Each criterion should declare:
+  - `id`, `title`, `severity`, `actors`
+  - `surface` (`web|api|mobile|cli`)
+  - `environment` (default to `local` unless stated)
+  - `given`, `when`, `then` (behavior contract)
+  - `evidence_required` (artifacts expected from QA run)
+- AC defines behavior expectations, not executable command scripts.
+- Prefer concrete, observable `then` outcomes and explicit evidence items (for example screenshot, video, API response).
 
 ## Design Rules
 

@@ -55,7 +55,7 @@ func Execute(a Actions, in Input) (Result, error) {
 		if err != nil {
 			return Result{}, err
 		}
-		text, err := a.Plan(sessionID, flagValue(in.Args, "--env"), profileList(flagValue(in.Args, "--profiles")))
+		text, err := a.Plan(sessionID, flagValue(in.Args, "--ac-file"))
 		if err != nil {
 			return Result{}, err
 		}
@@ -66,12 +66,19 @@ func Execute(a Actions, in Input) (Result, error) {
 		if err != nil {
 			return Result{}, err
 		}
-		text, err := a.Run(sessionID, flagValue(in.Args, "--env"), profileList(flagValue(in.Args, "--profiles")))
+		text, err := a.Run(sessionID, flagValue(in.Args, "--ac-file"))
 		if err != nil {
 			return Result{}, err
 		}
 		fmt.Println(text)
 		return Result{Name: "run"}, nil
+	case "doctor":
+		text, err := a.Doctor(flagValue(in.Args, "--ac-file"))
+		if err != nil {
+			return Result{}, err
+		}
+		fmt.Println(text)
+		return Result{Name: "doctor"}, nil
 	default:
 		return Result{}, BuildUnknownError(in.Name)
 	}

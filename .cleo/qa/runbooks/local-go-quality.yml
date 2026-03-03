@@ -1,15 +1,19 @@
 name: local-go-quality
-description: Run deterministic local quality gates for Go changes.
+description: Baseline acceptance criteria for cleo changes on local environment.
 checks:
-  - id: fmt
-    title: Go formatting and lint wrappers are valid
-    command: make fmt
+  - id: formatting
+    title: Formatting and linting baseline
+    goal: Ensure code style and static checks are clean for the proposed changes.
+    how_to_test: Run local formatting/linting process and inspect outputs for regressions.
+    expected_result: No formatting drift and no lint regressions.
     severity: medium
-    failure_title: Formatting check failed
-    failure_details: make fmt failed for current branch changes.
-  - id: test
-    title: Unit and integration tests pass
-    command: make test
+    failure_title: Formatting or linting baseline failed
+    failure_details: Local quality baseline indicates formatting/linting regressions.
+  - id: tests
+    title: Test reliability baseline
+    goal: Confirm existing tests continue to pass with current branch changes.
+    how_to_test: Execute the repository test workflow in local environment.
+    expected_result: All required test suites pass without new failures.
     severity: high
-    failure_title: Test suite failed
-    failure_details: make test failed for current branch changes.
+    failure_title: Test baseline failed
+    failure_details: Local test workflow indicates regression in current branch changes.

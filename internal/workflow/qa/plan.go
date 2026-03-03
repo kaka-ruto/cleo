@@ -6,7 +6,7 @@ func BuildPlan(in Input) (Plan, error) {
 	switch in.Name {
 	case "start":
 		if flagValue(in.Args, "--source") == "" || flagValue(in.Args, "--ref") == "" {
-			return Plan{}, fmt.Errorf("usage: cleo qa start --source <pr|request> --ref <id|text> --goals <text>")
+			return Plan{}, fmt.Errorf("usage: cleo qa start --source <branch|pr|request> --ref <name|id|text> --goals <text>")
 		}
 		return Plan{Name: "start", Description: "Start QA session"}, nil
 	case "log":
@@ -25,15 +25,20 @@ func BuildPlan(in Input) (Plan, error) {
 		}
 		return Plan{Name: "report", Description: "Print QA session report", ReadOnly: true}, nil
 	case "plan":
-		if flagValue(in.Args, "--session") == "" {
-			return Plan{}, fmt.Errorf("usage: cleo qa plan --session <id> [--env <name>] [--profiles <a,b>]")
+		if flagValue(in.Args, "--session") == "" || flagValue(in.Args, "--ac-file") == "" {
+			return Plan{}, fmt.Errorf("usage: cleo qa plan --session <id> --ac-file <path>")
 		}
-		return Plan{Name: "plan", Description: "Resolve QA profiles and runbooks", ReadOnly: true}, nil
+		return Plan{Name: "plan", Description: "Validate AC and resolve action/tool plan", ReadOnly: true}, nil
 	case "run":
-		if flagValue(in.Args, "--session") == "" {
-			return Plan{}, fmt.Errorf("usage: cleo qa run --session <id> [--env <name>] [--profiles <a,b>]")
+		if flagValue(in.Args, "--session") == "" || flagValue(in.Args, "--ac-file") == "" {
+			return Plan{}, fmt.Errorf("usage: cleo qa run --session <id> --ac-file <path>")
 		}
-		return Plan{Name: "run", Description: "Execute QA runbooks"}, nil
+		return Plan{Name: "run", Description: "Run AC guidance and record findings"}, nil
+	case "doctor":
+		if flagValue(in.Args, "--ac-file") == "" {
+			return Plan{}, fmt.Errorf("usage: cleo qa doctor --ac-file <path>")
+		}
+		return Plan{Name: "doctor", Description: "Check required QA tools", ReadOnly: true}, nil
 	default:
 		return Plan{}, fmt.Errorf("unknown qa command: %s", in.Name)
 	}

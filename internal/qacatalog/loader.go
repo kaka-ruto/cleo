@@ -1,4 +1,4 @@
-package qaassets
+package qacatalog
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 )
 
 type Loader struct {
-	ProfilesDir     string
+	ActorsDir       string
 	RunbooksDir     string
 	EnvironmentsDir string
 }
@@ -28,17 +28,17 @@ func (l Loader) LoadEnvironment(name string) (Environment, error) {
 	return out, nil
 }
 
-func (l Loader) LoadProfile(name string) (Profile, error) {
-	var out Profile
-	path := filepath.Join(strings.TrimSpace(l.ProfilesDir), strings.TrimSpace(name)+".yml")
+func (l Loader) LoadActor(name string) (Actor, error) {
+	var out Actor
+	path := filepath.Join(strings.TrimSpace(l.ActorsDir), strings.TrimSpace(name)+".yml")
 	if err := decodeFile(path, &out); err != nil {
-		return Profile{}, fmt.Errorf("load profile %q: %w", name, err)
+		return Actor{}, fmt.Errorf("load actor %q: %w", name, err)
 	}
 	if strings.TrimSpace(out.Name) == "" {
 		out.Name = strings.TrimSpace(name)
 	}
 	if len(out.Runbooks) == 0 {
-		return Profile{}, fmt.Errorf("profile %q must declare runbooks", name)
+		return Actor{}, fmt.Errorf("actor %q must declare runbooks", name)
 	}
 	return out, nil
 }

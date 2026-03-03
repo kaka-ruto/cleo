@@ -35,7 +35,12 @@ func (a *Adapter) List(status string) (string, error) {
 		if strings.TrimSpace(branch) == "" {
 			branch = "-"
 		}
-		fmt.Fprintf(&b, "#%d [%s] %s status=%s occurrences=%d branch=%s\n", task.ID, task.Severity, task.Title, task.Status, task.Occurrences, branch)
+		session, sessionErr := a.store.Session(context.Background(), task.SessionID)
+		source := "unknown"
+		if sessionErr == nil {
+			source = fmt.Sprintf("%s:%s", session.Source, session.Ref)
+		}
+		fmt.Fprintf(&b, "#%d [%s] %s status=%s occurrences=%d source=%s branch=%s\n", task.ID, task.Severity, task.Title, task.Status, task.Occurrences, source, branch)
 	}
 	return strings.TrimRight(b.String(), "\n"), nil
 }
@@ -49,7 +54,12 @@ func (a *Adapter) Show(id int64) (string, error) {
 	if strings.TrimSpace(branch) == "" {
 		branch = "-"
 	}
-	return fmt.Sprintf("Task #%d\nrepo=%s\nstatus=%s severity=%s\noccurrences=%d\nwork_branch=%s\n\ntitle: %s\n\ndetails:\n%s", task.ID, task.RepoKey, task.Status, task.Severity, task.Occurrences, branch, task.Title, task.Details), nil
+	session, sessionErr := a.store.Session(context.Background(), task.SessionID)
+	source := "unknown"
+	if sessionErr == nil {
+		source = fmt.Sprintf("%s:%s", session.Source, session.Ref)
+	}
+	return fmt.Sprintf("Task #%d\nrepo=%s\nsource=%s\nstatus=%s severity=%s\noccurrences=%d\nwork_branch=%s\n\ntitle: %s\n\ndetails:\n%s", task.ID, task.RepoKey, source, task.Status, task.Severity, task.Occurrences, branch, task.Title, task.Details), nil
 }
 
 func (a *Adapter) Claim(id int64) error {

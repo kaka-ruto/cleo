@@ -68,10 +68,10 @@ type Config struct {
 		DefaultDraft  bool   `yaml:"default_draft"`
 	} `yaml:"release"`
 	QA struct {
-		ProfilesDir     string   `yaml:"profiles_dir"`
+		ActorsDir       string   `yaml:"actors_dir"`
 		RunbooksDir     string   `yaml:"runbooks_dir"`
 		EnvironmentsDir string   `yaml:"environments_dir"`
-		DefaultProfiles []string `yaml:"default_profiles"`
+		DefaultActors   []string `yaml:"default_actors"`
 		DefaultEnv      string   `yaml:"default_env"`
 	} `yaml:"qa"`
 }
@@ -149,8 +149,8 @@ func (c *Config) applyDefaults() {
 	if c.Release.BuildTarget == "" {
 		c.Release.BuildTarget = "./cmd/cleo"
 	}
-	if c.QA.ProfilesDir == "" {
-		c.QA.ProfilesDir = ".cleo/qa/profiles"
+	if c.QA.ActorsDir == "" {
+		c.QA.ActorsDir = ".cleo/qa/actors"
 	}
 	if c.QA.RunbooksDir == "" {
 		c.QA.RunbooksDir = ".cleo/qa/runbooks"

@@ -1,6 +1,6 @@
-package qaassets
+package qacatalog
 
-type Profile struct {
+type Actor struct {
 	Name        string   `yaml:"name"`
 	Description string   `yaml:"description"`
 	Runbooks    []string `yaml:"runbooks"`
@@ -15,7 +15,9 @@ type Runbook struct {
 type RunCheck struct {
 	ID             string `yaml:"id"`
 	Title          string `yaml:"title"`
-	Command        string `yaml:"command"`
+	Goal           string `yaml:"goal"`
+	HowToTest      string `yaml:"how_to_test"`
+	ExpectedResult string `yaml:"expected_result"`
 	Severity       string `yaml:"severity"`
 	FailureTitle   string `yaml:"failure_title"`
 	FailureDetails string `yaml:"failure_details"`

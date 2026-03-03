@@ -36,7 +36,7 @@ func int64Flag(args []string, key string) (int64, error) {
 	return id, nil
 }
 
-func profileList(raw string) []string {
+func actorList(raw string) []string {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {
 		return nil

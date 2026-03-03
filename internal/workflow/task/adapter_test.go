@@ -125,7 +125,7 @@ func openTestStore(t *testing.T) *taskstore.Store {
 func seedTask(t *testing.T, store *taskstore.Store) int64 {
 	t.Helper()
 	now := time.Date(2026, 3, 3, 12, 0, 0, 0, time.UTC)
-	session, err := store.StartSession(context.Background(), "pr", "4", "qa", now)
+	session, err := store.StartSession(context.Background(), "pr", "4", "qa", "", now)
 	if err != nil {
 		t.Fatalf("start session: %v", err)
 	}

@@ -11,21 +11,7 @@ import (
 )
 
 type Loader struct {
-	ActorsDir       string
-	RunbooksDir     string
-	EnvironmentsDir string
-}
-
-func (l Loader) LoadEnvironment(name string) (Environment, error) {
-	var out Environment
-	path := filepath.Join(strings.TrimSpace(l.EnvironmentsDir), strings.TrimSpace(name)+".yml")
-	if err := decodeFile(path, &out); err != nil {
-		return Environment{}, fmt.Errorf("load environment %q: %w", name, err)
-	}
-	if strings.TrimSpace(out.Name) == "" {
-		out.Name = strings.TrimSpace(name)
-	}
-	return out, nil
+	ActorsDir string
 }
 
 func (l Loader) LoadActor(name string) (Actor, error) {
@@ -33,21 +19,6 @@ func (l Loader) LoadActor(name string) (Actor, error) {
 	path := filepath.Join(strings.TrimSpace(l.ActorsDir), strings.TrimSpace(name)+".yml")
 	if err := decodeFile(path, &out); err != nil {
 		return Actor{}, fmt.Errorf("load actor %q: %w", name, err)
-	}
-	if strings.TrimSpace(out.Name) == "" {
-		out.Name = strings.TrimSpace(name)
-	}
-	if len(out.Runbooks) == 0 {
-		return Actor{}, fmt.Errorf("actor %q must declare runbooks", name)
-	}
-	return out, nil
-}
-
-func (l Loader) LoadRunbook(name string) (Runbook, error) {
-	var out Runbook
-	path := filepath.Join(strings.TrimSpace(l.RunbooksDir), strings.TrimSpace(name)+".yml")
-	if err := decodeFile(path, &out); err != nil {
-		return Runbook{}, fmt.Errorf("load runbook %q: %w", name, err)
 	}
 	if strings.TrimSpace(out.Name) == "" {
 		out.Name = strings.TrimSpace(name)

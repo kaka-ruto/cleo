@@ -10,6 +10,7 @@ type Criterion struct {
 	ID         string        `yaml:"id"`
 	Title      string        `yaml:"title"`
 	Severity   string        `yaml:"severity"`
+	Actors     []string      `yaml:"actors"`
 	Acceptance Acceptance    `yaml:"acceptance"`
 	Execution  ExecutionPlan `yaml:"execution"`
 	Evidence   []string      `yaml:"evidence_required"`

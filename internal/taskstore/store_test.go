@@ -16,7 +16,7 @@ func TestUpsertOpenTaskDedupesByRepoAndKey(t *testing.T) {
 	defer func() { _ = store.Close() }()
 
 	now := time.Date(2026, 3, 3, 12, 0, 0, 0, time.UTC)
-	session, err := store.StartSession(context.Background(), "pr", "123", "checkout regression", now)
+	session, err := store.StartSession(context.Background(), "pr", "123", "checkout regression", "", now)
 	if err != nil {
 		t.Fatalf("start session: %v", err)
 	}

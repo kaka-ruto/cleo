@@ -8,7 +8,7 @@ func Execute(a Actions, in Input) (Result, error) {
 		source := flagValue(in.Args, "--source")
 		ref := flagValue(in.Args, "--ref")
 		goals := flagValue(in.Args, "--goals")
-		id, err := a.Start(source, ref, goals)
+		id, err := a.Start(source, ref, goals, flagValue(in.Args, "--ac"))
 		if err != nil {
 			return Result{}, err
 		}
@@ -55,7 +55,7 @@ func Execute(a Actions, in Input) (Result, error) {
 		if err != nil {
 			return Result{}, err
 		}
-		text, err := a.Plan(sessionID, flagValue(in.Args, "--ac-file"))
+		text, err := a.Plan(sessionID)
 		if err != nil {
 			return Result{}, err
 		}
@@ -66,14 +66,18 @@ func Execute(a Actions, in Input) (Result, error) {
 		if err != nil {
 			return Result{}, err
 		}
-		text, err := a.Run(sessionID, flagValue(in.Args, "--ac-file"))
+		text, err := a.Run(sessionID)
 		if err != nil {
 			return Result{}, err
 		}
 		fmt.Println(text)
 		return Result{Name: "run"}, nil
 	case "doctor":
-		text, err := a.Doctor(flagValue(in.Args, "--ac-file"))
+		sessionID, err := int64Flag(in.Args, "--session")
+		if err != nil {
+			return Result{}, err
+		}
+		text, err := a.Doctor(sessionID)
 		if err != nil {
 			return Result{}, err
 		}

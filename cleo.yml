@@ -60,8 +60,5 @@ release:
 
 qa:
   actors_dir: ".cleo/qa/actors"
-  runbooks_dir: ".cleo/qa/runbooks"
-  environments_dir: ".cleo/qa/environments"
   default_actors:
     - "core"
-  default_env: "local"

@@ -1,4 +1,5 @@
 name: core
-description: Core quality checks for cleo repository changes.
-runbooks:
-  - local-go-quality
+description: Default actor context for repository-level QA.
+surfaces:
+  - api
+auth_profile: local-dev

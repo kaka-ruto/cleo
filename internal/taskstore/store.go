@@ -21,6 +21,7 @@ type Session struct {
 	Source    string
 	Ref       string
 	Goals     string
+	ACText    string
 	Verdict   string
 	StartedAt time.Time
 	EndedAt   sql.NullTime
@@ -70,6 +71,7 @@ CREATE TABLE IF NOT EXISTS qa_sessions (
   source TEXT NOT NULL,
   ref TEXT NOT NULL,
   goals TEXT NOT NULL,
+  ac_text TEXT NOT NULL DEFAULT '',
   verdict TEXT NOT NULL DEFAULT '',
   started_at TEXT NOT NULL,
   ended_at TEXT
@@ -112,15 +114,18 @@ CREATE INDEX IF NOT EXISTS idx_task_events_task_id ON task_events(task_id);
 	if _, err := s.db.ExecContext(ctx, "ALTER TABLE tasks ADD COLUMN work_branch TEXT NOT NULL DEFAULT ''"); err != nil && !isDuplicateColumnError(err) {
 		return fmt.Errorf("migrate task work_branch column: %w", err)
 	}
+	if _, err := s.db.ExecContext(ctx, "ALTER TABLE qa_sessions ADD COLUMN ac_text TEXT NOT NULL DEFAULT ''"); err != nil && !isDuplicateColumnError(err) {
+		return fmt.Errorf("migrate qa session ac_text column: %w", err)
+	}
 	return nil
 }
 
-func (s *Store) StartSession(ctx context.Context, source, ref, goals string, now time.Time) (Session, error) {
+func (s *Store) StartSession(ctx context.Context, source, ref, goals, acText string, now time.Time) (Session, error) {
 	started := now.UTC().Format(time.RFC3339Nano)
 	res, err := s.db.ExecContext(ctx, `
-INSERT INTO qa_sessions(source, ref, goals, started_at)
-VALUES(?, ?, ?, ?)
-`, strings.TrimSpace(source), strings.TrimSpace(ref), strings.TrimSpace(goals), started)
+INSERT INTO qa_sessions(source, ref, goals, ac_text, started_at)
+VALUES(?, ?, ?, ?, ?)
+`, strings.TrimSpace(source), strings.TrimSpace(ref), strings.TrimSpace(goals), strings.TrimSpace(acText), started)
 	if err != nil {
 		return Session{}, fmt.Errorf("insert qa session: %w", err)
 	}
@@ -128,7 +133,7 @@ VALUES(?, ?, ?, ?)
 	if err != nil {
 		return Session{}, fmt.Errorf("read qa session id: %w", err)
 	}
-	return Session{ID: id, Source: source, Ref: ref, Goals: goals, StartedAt: now.UTC()}, nil
+	return Session{ID: id, Source: source, Ref: ref, Goals: goals, ACText: acText, StartedAt: now.UTC()}, nil
 }
 
 func (s *Store) FinishSession(ctx context.Context, sessionID int64, verdict string, now time.Time) error {
@@ -156,10 +161,10 @@ func (s *Store) Session(ctx context.Context, sessionID int64) (Session, error) {
 	var started string
 	var ended sql.NullString
 	err := s.db.QueryRowContext(ctx, `
-SELECT id, source, ref, goals, verdict, started_at, ended_at
+SELECT id, source, ref, goals, ac_text, verdict, started_at, ended_at
 FROM qa_sessions
 WHERE id = ?
-`, sessionID).Scan(&out.ID, &out.Source, &out.Ref, &out.Goals, &out.Verdict, &started, &ended)
+`, sessionID).Scan(&out.ID, &out.Source, &out.Ref, &out.Goals, &out.ACText, &out.Verdict, &started, &ended)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return Session{}, fmt.Errorf("qa session not found: %d", sessionID)

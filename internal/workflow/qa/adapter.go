@@ -5,11 +5,14 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"os/exec"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/cafaye/cleo/internal/config"
 	"github.com/cafaye/cleo/internal/qaaction"
+	"github.com/cafaye/cleo/internal/qacatalog"
 	"github.com/cafaye/cleo/internal/qacontract"
 	"github.com/cafaye/cleo/internal/qatools"
 	"github.com/cafaye/cleo/internal/taskstore"
@@ -20,6 +23,7 @@ type Adapter struct {
 	repoKey  string
 	cfg      *config.Config
 	registry qaaction.Registry
+	loader   qacatalog.Loader
 	now      func() time.Time
 }
 
@@ -29,12 +33,17 @@ func NewAdapter(store *taskstore.Store, repoKey string, cfg *config.Config) *Ada
 		repoKey:  strings.TrimSpace(repoKey),
 		cfg:      cfg,
 		registry: qaaction.NewRegistry(),
+		loader:   qacatalog.Loader{ActorsDir: cfg.QA.ActorsDir},
 		now:      time.Now,
 	}
 }
 
-func (a *Adapter) Start(source string, ref string, goals string) (int64, error) {
-	s, err := a.store.StartSession(context.Background(), source, ref, goals, a.now())
+func (a *Adapter) Start(source string, ref string, goals string, ac string) (int64, error) {
+	acText, err := a.resolveAC(source, ref, ac)
+	if err != nil {
+		return 0, err
+	}
+	s, err := a.store.StartSession(context.Background(), source, ref, goals, acText, a.now())
 	if err != nil {
 		return 0, err
 	}
@@ -95,37 +104,26 @@ func (a *Adapter) Report(sessionID int64) (string, error) {
 	return strings.Join(lines, "\n"), nil
 }
 
-func (a *Adapter) Plan(sessionID int64, acFile string) (string, error) {
-	if _, err := a.store.Session(context.Background(), sessionID); err != nil {
-		return "", err
-	}
-	doc, err := qacontract.Load(acFile)
+func (a *Adapter) Plan(sessionID int64) (string, error) {
+	doc, actors, err := a.loadSessionContract(sessionID)
 	if err != nil {
-		return "", err
-	}
-	if err := a.registry.Validate(doc); err != nil {
 		return "", err
 	}
 	var lines []string
 	lines = append(lines, fmt.Sprintf("QA AC plan for session %d", sessionID))
 	lines = append(lines, fmt.Sprintf("name=%s", emptyDefault(doc.Name, "unnamed")))
 	lines = append(lines, fmt.Sprintf("criteria=%d", len(doc.Criteria)))
+	lines = append(lines, fmt.Sprintf("actors=%s", strings.Join(actors, ",")))
 	lines = append(lines, fmt.Sprintf("required_tools=%s", strings.Join(a.registry.ToolSummary(doc), ",")))
 	for _, criterion := range doc.Criteria {
-		lines = append(lines, fmt.Sprintf("- [%s] %s (%s)", criterion.ID, criterion.Title, emptyDefault(criterion.Severity, "medium")))
+		lines = append(lines, fmt.Sprintf("- [%s] %s (%s) actors=%s", criterion.ID, criterion.Title, emptyDefault(criterion.Severity, "medium"), strings.Join(criterion.Actors, ",")))
 	}
 	return strings.Join(lines, "\n"), nil
 }
 
-func (a *Adapter) Run(sessionID int64, acFile string) (string, error) {
-	if _, err := a.store.Session(context.Background(), sessionID); err != nil {
-		return "", err
-	}
-	doc, err := qacontract.Load(acFile)
+func (a *Adapter) Run(sessionID int64) (string, error) {
+	doc, _, err := a.loadSessionContract(sessionID)
 	if err != nil {
-		return "", err
-	}
-	if err := a.registry.Validate(doc); err != nil {
 		return "", err
 	}
 	var lines []string
@@ -135,13 +133,19 @@ func (a *Adapter) Run(sessionID int64, acFile string) (string, error) {
 	lines = append(lines, "")
 	for _, criterion := range doc.Criteria {
 		lines = append(lines, fmt.Sprintf("criterion %s: %s", criterion.ID, criterion.Title))
+		lines = append(lines, fmt.Sprintf("  actors: %s", strings.Join(criterion.Actors, ",")))
 		lines = append(lines, fmt.Sprintf("  goal: %s", criterion.Acceptance.Goal))
 		lines = append(lines, fmt.Sprintf("  expected_result: %s", criterion.Acceptance.ExpectedResult))
 		lines = append(lines, fmt.Sprintf("  surface: %s", criterion.Execution.Surface))
 		if len(criterion.Execution.Preconditions) > 0 {
 			lines = append(lines, "  preconditions:")
-			for key, value := range criterion.Execution.Preconditions {
-				lines = append(lines, fmt.Sprintf("    - %s=%s", key, value))
+			keys := make([]string, 0, len(criterion.Execution.Preconditions))
+			for key := range criterion.Execution.Preconditions {
+				keys = append(keys, key)
+			}
+			sort.Strings(keys)
+			for _, key := range keys {
+				lines = append(lines, fmt.Sprintf("    - %s=%s", key, criterion.Execution.Preconditions[key]))
 			}
 		}
 		lines = append(lines, "  steps:")
@@ -153,16 +157,13 @@ func (a *Adapter) Run(sessionID int64, acFile string) (string, error) {
 		}
 		lines = append(lines, "")
 	}
-	lines = append(lines, "Run the criteria using your configured browser/api tools, then log any failures with `cleo qa log` and set final verdict with `cleo qa finish`.")
+	lines = append(lines, "Run the criteria using configured tools, then log failures with `cleo qa log` and finish with `cleo qa finish`.")
 	return strings.Join(lines, "\n"), nil
 }
 
-func (a *Adapter) Doctor(acFile string) (string, error) {
-	doc, err := qacontract.Load(acFile)
+func (a *Adapter) Doctor(sessionID int64) (string, error) {
+	doc, _, err := a.loadSessionContract(sessionID)
 	if err != nil {
-		return "", err
-	}
-	if err := a.registry.Validate(doc); err != nil {
 		return "", err
 	}
 	checks := qatools.Doctor(a.registry.ToolSummary(doc))
@@ -172,6 +173,85 @@ func (a *Adapter) Doctor(acFile string) (string, error) {
 		lines = append(lines, fmt.Sprintf("- %s: %s (%s)", check.Name, check.Status, check.Detail))
 	}
 	return strings.Join(lines, "\n"), nil
+}
+
+func (a *Adapter) loadSessionContract(sessionID int64) (qacontract.Document, []string, error) {
+	session, err := a.store.Session(context.Background(), sessionID)
+	if err != nil {
+		return qacontract.Document{}, nil, err
+	}
+	doc, err := qacontract.LoadString(session.ACText)
+	if err != nil {
+		return qacontract.Document{}, nil, err
+	}
+	if err := a.registry.Validate(doc); err != nil {
+		return qacontract.Document{}, nil, err
+	}
+	actors, err := a.validateActors(doc)
+	if err != nil {
+		return qacontract.Document{}, nil, err
+	}
+	return doc, actors, nil
+}
+
+func (a *Adapter) validateActors(doc qacontract.Document) ([]string, error) {
+	set := map[string]struct{}{}
+	for _, criterion := range doc.Criteria {
+		for _, actor := range criterion.Actors {
+			name := strings.TrimSpace(actor)
+			if name == "" {
+				continue
+			}
+			if _, err := a.loader.LoadActor(name); err != nil {
+				return nil, err
+			}
+			set[name] = struct{}{}
+		}
+	}
+	out := make([]string, 0, len(set))
+	for name := range set {
+		out = append(out, name)
+	}
+	sort.Strings(out)
+	return out, nil
+}
+
+func (a *Adapter) resolveAC(source string, ref string, inline string) (string, error) {
+	if strings.TrimSpace(inline) != "" {
+		if _, err := qacontract.LoadString(inline); err != nil {
+			return "", err
+		}
+		return inline, nil
+	}
+	if strings.TrimSpace(source) == "pr" {
+		return a.acFromPR(ref)
+	}
+	return "", fmt.Errorf("acceptance criteria are required: provide --ac or use source=pr with AC block in PR body")
+}
+
+func (a *Adapter) acFromPR(ref string) (string, error) {
+	repo := strings.TrimSpace(a.cfg.GitHub.Owner) + "/" + strings.TrimSpace(a.cfg.GitHub.Repo)
+	cmd := exec.Command("gh", "pr", "view", strings.TrimSpace(ref), "--repo", repo, "--json", "body", "--jq", ".body")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("read PR body for AC: %s", strings.TrimSpace(string(out)))
+	}
+	body := string(out)
+	start := "<!-- cleo-ac:start -->"
+	end := "<!-- cleo-ac:end -->"
+	si := strings.Index(body, start)
+	ei := strings.Index(body, end)
+	if si < 0 || ei <= si {
+		return "", fmt.Errorf("PR does not contain AC block markers %q and %q", start, end)
+	}
+	ac := strings.TrimSpace(body[si+len(start) : ei])
+	if ac == "" {
+		return "", fmt.Errorf("PR AC block is empty")
+	}
+	if _, err := qacontract.LoadString(ac); err != nil {
+		return "", err
+	}
+	return ac, nil
 }
 
 func dedupeKey(repoKey string, title string, details string) string {

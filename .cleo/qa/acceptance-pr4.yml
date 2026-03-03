@@ -4,6 +4,7 @@ criteria:
   - id: task-work-lane
     title: Task work lane follows branch policy
     severity: high
+    actors: [core]
     acceptance:
       goal: task work should use in-place lane for non-base branches and persist work branch
       expected_result: running task work on non-base branch sets in_progress and records same branch
@@ -17,29 +18,10 @@ criteria:
           params:
             method: GET
             url: http://localhost:0/placeholder
-            output_key: ignored
+            output_key: lane
         - action: assert_equal_money
           params:
             left_key: lane
             right_key: lane
     evidence_required:
       - task_show_output
-  - id: qa-plan-contract
-    title: QA plan validates AC and shows required tools
-    severity: medium
-    acceptance:
-      goal: qa plan should accept AC file and produce criterion summary
-      expected_result: plan output includes criteria count and tool requirements
-    execution:
-      surface: api
-      environment: local
-      preconditions:
-        ac_file: .cleo/qa/acceptance-pr4.yml
-      steps:
-        - action: call_api
-          params:
-            method: GET
-            url: http://localhost:0/placeholder
-            output_key: ignored
-    evidence_required:
-      - qa_plan_output

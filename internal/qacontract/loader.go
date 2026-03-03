@@ -14,11 +14,19 @@ func Load(path string) (Document, error) {
 	if err != nil {
 		return Document{}, fmt.Errorf("read AC file: %w", err)
 	}
+	return LoadBytes(body)
+}
+
+func LoadString(raw string) (Document, error) {
+	return LoadBytes([]byte(raw))
+}
+
+func LoadBytes(body []byte) (Document, error) {
 	var doc Document
 	dec := yaml.NewDecoder(bytes.NewReader(body))
 	dec.KnownFields(true)
 	if err := dec.Decode(&doc); err != nil {
-		return Document{}, fmt.Errorf("parse AC file: %w", err)
+		return Document{}, fmt.Errorf("parse AC: %w", err)
 	}
 	if doc.Version == 0 {
 		doc.Version = 1
@@ -32,6 +40,9 @@ func Load(path string) (Document, error) {
 	for _, c := range doc.Criteria {
 		if strings.TrimSpace(c.ID) == "" || strings.TrimSpace(c.Title) == "" {
 			return Document{}, fmt.Errorf("each criterion requires id and title")
+		}
+		if len(c.Actors) == 0 {
+			return Document{}, fmt.Errorf("criterion %q requires actors", c.ID)
 		}
 		if strings.TrimSpace(c.Acceptance.Goal) == "" || strings.TrimSpace(c.Acceptance.ExpectedResult) == "" {
 			return Document{}, fmt.Errorf("criterion %q requires acceptance.goal and acceptance.expected_result", c.ID)

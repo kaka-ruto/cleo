@@ -1,0 +1,122 @@
+name: qa-pr
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh shellcheck nodejs
+
+      - name: Evaluate PR QA policy
+        id: policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_ACTION: ${{ github.event.action }}
+        run: |
+          set -euo pipefail
+          body="$(gh pr view "$PR_NUMBER" --json body --jq .body)"
+
+          has_ac_markers() {
+            printf "%s" "$body" | grep -q "<!-- cleo-ac:start -->" && printf "%s" "$body" | grep -q "<!-- cleo-ac:end -->"
+          }
+
+          if ! has_ac_markers; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "reason=no_ac" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          policy="$(printf "%s" "$body" | awk '/<!-- cleo-qa-policy:start -->/{flag=1;next}/<!-- cleo-qa-policy:end -->/{flag=0}flag')"
+
+          mode="$(printf "%s\n" "$policy" | awk -F: '/^mode:/{print $2; exit}' | xargs || true)"
+          publish="$(printf "%s\n" "$policy" | awk -F: '/^publish:/{print $2; exit}' | xargs || true)"
+          mapfile -t run_on < <(printf "%s\n" "$policy" | awk '/^run_on:/{flag=1;next} flag && /^  - /{sub(/^  - /,""); print; next} flag{flag=0}')
+
+          if [[ -z "$mode" ]]; then
+            mode="auto"
+          fi
+          if [[ -z "$publish" ]]; then
+            publish="pr"
+          fi
+          if [[ ${#run_on[@]} -eq 0 ]]; then
+            run_on=("opened" "synchronize" "reopened")
+          fi
+
+          should_run=false
+          for event in "${run_on[@]}"; do
+            if [[ "$event" == "$PR_ACTION" ]]; then
+              should_run=true
+              break
+            fi
+          done
+
+          echo "run=$should_run" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          echo "reason=policy" >> "$GITHUB_OUTPUT"
+
+      - name: Skip QA
+        if: steps.policy.outputs.run != 'true'
+        run: echo "Skipping QA run: ${{ steps.policy.outputs.reason }}"
+
+      - name: Run PR QA session
+        if: steps.policy.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          QA_MODE: ${{ steps.policy.outputs.mode }}
+          QA_PUBLISH: ${{ steps.policy.outputs.publish }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          goals="CI QA run for PR #${PR_NUMBER} (${SHA:0:7})"
+          sid="$(go run ./cmd/cleo qa start --source pr --ref "$PR_NUMBER" --goals "$goals" | awk '{print $4}')"
+          echo "QA session: $sid"
+
+          set +e
+          go run ./cmd/cleo qa run --session "$sid" --mode "$QA_MODE"
+          run_status=$?
+          set -e
+
+          verdict="pass"
+          if [[ "$run_status" -ne 0 ]]; then
+            verdict="fail"
+          fi
+          go run ./cmd/cleo qa finish --session "$sid" --verdict "$verdict"
+
+          if [[ "$QA_PUBLISH" == "pr" ]]; then
+            go run ./cmd/cleo qa report --session "$sid" --publish pr --ref "$PR_NUMBER"
+          else
+            go run ./cmd/cleo qa report --session "$sid"
+          fi
+
+          exit "$run_status"

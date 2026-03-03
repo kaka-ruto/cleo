@@ -38,6 +38,16 @@ criteria:
 _No QA report published yet._
 <!-- cleo-qa-results:end -->
 
+## QA Policy
+<!-- cleo-qa-policy:start -->
+mode: auto
+run_on:
+  - opened
+  - synchronize
+  - reopened
+publish: pr
+<!-- cleo-qa-policy:end -->
+
 ## Observability
 - Expected signals:
 - Dashboard/alerts:

@@ -18,6 +18,7 @@ import (
 	"github.com/cafaye/cleo/internal/qacontract"
 	"github.com/cafaye/cleo/internal/qatools"
 	"github.com/cafaye/cleo/internal/taskstore"
+	"gopkg.in/yaml.v3"
 )
 
 type Adapter struct {
@@ -32,6 +33,8 @@ type Adapter struct {
 const (
 	qaSummaryStart = "<!-- cleo-qa-results:start -->"
 	qaSummaryEnd   = "<!-- cleo-qa-results:end -->"
+	qaPolicyStart  = "<!-- cleo-qa-policy:start -->"
+	qaPolicyEnd    = "<!-- cleo-qa-policy:end -->"
 )
 
 func NewAdapter(store *taskstore.Store, repoKey string, cfg *config.Config) *Adapter {
@@ -156,6 +159,10 @@ func (a *Adapter) Plan(sessionID int64) (string, error) {
 }
 
 func (a *Adapter) Run(sessionID int64, mode string) (string, error) {
+	session, err := a.store.Session(context.Background(), sessionID)
+	if err != nil {
+		return "", err
+	}
 	doc, _, err := a.loadSessionContract(sessionID)
 	if err != nil {
 		return "", err
@@ -164,8 +171,17 @@ func (a *Adapter) Run(sessionID int64, mode string) (string, error) {
 	if resolvedMode == "" {
 		resolvedMode = "auto"
 	}
+	if resolvedMode == "pr" {
+		if strings.TrimSpace(session.Source) != "pr" || strings.TrimSpace(session.Ref) == "" {
+			return "", fmt.Errorf("--mode pr requires a PR-backed session")
+		}
+		resolvedMode, err = a.qaModeFromPRPolicy(strings.TrimSpace(session.Ref))
+		if err != nil {
+			return "", err
+		}
+	}
 	if resolvedMode != "auto" && resolvedMode != "manual" {
-		return "", fmt.Errorf("--mode must be auto|manual")
+		return "", fmt.Errorf("--mode must be auto|manual|pr")
 	}
 	if resolvedMode == "manual" && !a.cfg.QAManualEnabled() {
 		return "", fmt.Errorf("manual QA mode is disabled in cleo.yml (qa.manual.enabled=false)")
@@ -300,13 +316,10 @@ func (a *Adapter) resolveAC(source string, ref string, inline string) (string, e
 }
 
 func (a *Adapter) acFromPR(ref string) (string, error) {
-	repo := strings.TrimSpace(a.cfg.GitHub.Owner) + "/" + strings.TrimSpace(a.cfg.GitHub.Repo)
-	cmd := exec.Command("gh", "pr", "view", strings.TrimSpace(ref), "--repo", repo, "--json", "body", "--jq", ".body")
-	out, err := cmd.CombinedOutput()
+	body, err := a.prBody(ref)
 	if err != nil {
-		return "", fmt.Errorf("read PR body for AC: %s", strings.TrimSpace(string(out)))
+		return "", err
 	}
-	body := string(out)
 	start := "<!-- cleo-ac:start -->"
 	end := "<!-- cleo-ac:end -->"
 	si := strings.Index(body, start)
@@ -322,6 +335,41 @@ func (a *Adapter) acFromPR(ref string) (string, error) {
 		return "", err
 	}
 	return ac, nil
+}
+
+func (a *Adapter) qaModeFromPRPolicy(ref string) (string, error) {
+	body, err := a.prBody(ref)
+	if err != nil {
+		return "", err
+	}
+	block := extractMarkerBlock(body, qaPolicyStart, qaPolicyEnd)
+	if strings.TrimSpace(block) == "" {
+		return "auto", nil
+	}
+	var policy struct {
+		Mode string `yaml:"mode"`
+	}
+	if err := yaml.Unmarshal([]byte(block), &policy); err != nil {
+		return "", fmt.Errorf("parse PR QA policy: %w", err)
+	}
+	mode := strings.TrimSpace(policy.Mode)
+	if mode == "" {
+		mode = "auto"
+	}
+	if mode != "auto" && mode != "manual" {
+		return "", fmt.Errorf("PR QA policy mode must be auto|manual")
+	}
+	return mode, nil
+}
+
+func (a *Adapter) prBody(ref string) (string, error) {
+	repo := strings.TrimSpace(a.cfg.GitHub.Owner) + "/" + strings.TrimSpace(a.cfg.GitHub.Repo)
+	cmd := exec.Command("gh", "pr", "view", strings.TrimSpace(ref), "--repo", repo, "--json", "body", "--jq", ".body")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("read PR body for AC: %s", strings.TrimSpace(string(out)))
+	}
+	return string(out), nil
 }
 
 func dedupeKey(repoKey string, title string, details string) string {
@@ -429,4 +477,13 @@ func upsertMarkerBlock(body, start, end, block string) string {
 		return block + "\n"
 	}
 	return trimmed + "\n\n## QA Results\n" + block + "\n"
+}
+
+func extractMarkerBlock(body, start, end string) string {
+	si := strings.Index(body, start)
+	ei := strings.Index(body, end)
+	if si < 0 || ei <= si {
+		return ""
+	}
+	return strings.TrimSpace(body[si+len(start) : ei])
 }

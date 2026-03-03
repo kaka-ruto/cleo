@@ -47,6 +47,7 @@ Guidance for agents working in this repository.
 - "plan QA from AC" -> `cleo qa plan --session <id>`
 - "run QA guidance (default automated-coverage mode)" -> `cleo qa run --session <id> --mode auto`
 - "run QA manual checks (if enabled)" -> `cleo qa run --session <id> --mode manual`
+- "run QA using PR policy mode" -> `cleo qa run --session <id> --mode pr`
 - "log QA findings as tasks" -> `cleo qa log --session <id> --title <text> --details <text>`
 - "publish QA report to PR (comment history + latest body summary)" -> `cleo qa report --session <id> --publish pr --ref <pr>`
 
@@ -69,6 +70,9 @@ Guidance for agents working in this repository.
 - PR QA publishing:
   - Every publish appends a PR comment (historical runs).
   - Latest summary is upserted in PR body between `<!-- cleo-qa-results:start -->` and `<!-- cleo-qa-results:end -->`.
+- PR QA policy:
+  - Policy is read from PR body between `<!-- cleo-qa-policy:start -->` and `<!-- cleo-qa-policy:end -->`.
+  - `mode` defaults to `auto` when absent.
 
 ## Design Rules
 

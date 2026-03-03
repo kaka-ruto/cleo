@@ -13,7 +13,7 @@ func PrintQA(out io.Writer) {
 	fmt.Fprintln(out, "  start --source <branch|pr|request> --ref <name|id|text> --goals <text> [--ac <yaml>]")
 	fmt.Fprintln(out, "  doctor --session <id>")
 	fmt.Fprintln(out, "  plan --session <id>")
-	fmt.Fprintln(out, "  run --session <id> [--mode <auto|manual>]")
+	fmt.Fprintln(out, "  run --session <id> [--mode <auto|manual|pr>]")
 	fmt.Fprintln(out, "  log --session <id> --title <text> --details <text> [--severity <low|medium|high|critical>]")
 	fmt.Fprintln(out, "  finish --session <id> --verdict <pass|fail|blocked>")
 	fmt.Fprintln(out, "  report --session <id> [--publish <pr>] [--ref <pr>]")
@@ -31,7 +31,7 @@ func PrintQACommand(out io.Writer, cmd string) bool {
 	case "plan":
 		fmt.Fprintln(out, "usage: cleo qa plan --session <id>")
 	case "run":
-		fmt.Fprintln(out, "usage: cleo qa run --session <id> [--mode <auto|manual>]")
+		fmt.Fprintln(out, "usage: cleo qa run --session <id> [--mode <auto|manual|pr>]")
 	case "log":
 		fmt.Fprintln(out, "usage: cleo qa log --session <id> --title <text> --details <text> [--severity <low|medium|high|critical>]")
 	case "finish":

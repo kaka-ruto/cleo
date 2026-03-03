@@ -1,34 +1,37 @@
 name: qa
 
 on:
-  pull_request:
+  workflow_run:
+    workflows:
+      - ci
     types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
-  push:
-    branches-ignore:
-      - master
-      - main
+      - completed
+  workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 jobs:
   qa:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      SHA: ${{ github.sha }}
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -46,44 +49,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            pr_number="${{ github.event.pull_request.number }}"
-            pr_action="${{ github.event.action }}"
-            pr_draft="${{ github.event.pull_request.draft }}"
-          else
-            branch="${GITHUB_REF#refs/heads/}"
-            pr_number="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number' || true)"
-            pr_action="synchronize"
-            pr_draft="false"
-          fi
-
+          pr_number="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' || true)"
           if [[ -z "$pr_number" || "$pr_number" == "null" ]]; then
             echo "has_pr=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-
           echo "has_pr=true" >> "$GITHUB_OUTPUT"
           echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
-          echo "pr_action=$pr_action" >> "$GITHUB_OUTPUT"
-          echo "pr_draft=$pr_draft" >> "$GITHUB_OUTPUT"
 
       - name: Skip when no PR context
         if: steps.ctx.outputs.has_pr != 'true'
         run: |
-          echo "Skipping QA run: no open PR for this branch."
-
-      - name: Skip draft PR
-        if: "steps.ctx.outputs.has_pr == 'true' && steps.ctx.outputs.pr_draft == 'true'"
-        run: |
-          echo "Skipping QA run: PR is draft."
+          echo "Skipping QA run: no open PR for branch $BRANCH."
 
       - name: Evaluate PR QA policy
         id: policy
-        if: "steps.ctx.outputs.has_pr == 'true' && steps.ctx.outputs.pr_draft != 'true'"
+        if: steps.ctx.outputs.has_pr == 'true'
         shell: bash
         env:
           PR_NUMBER: ${{ steps.ctx.outputs.pr_number }}
-          PR_ACTION: ${{ steps.ctx.outputs.pr_action }}
         run: |
           set -euo pipefail
           body="$(gh pr view "$PR_NUMBER" --json body --jq .body)"
@@ -96,31 +80,12 @@ jobs:
 
           policy="$(awk '/<!-- cleo-qa-policy:start -->/{flag=1;next}/<!-- cleo-qa-policy:end -->/{flag=0}flag' <<< "$body")"
           mode="$(awk -F: '/^mode:/{print $2; exit}' <<< "$policy" | xargs || true)"
-          publish="$(awk -F: '/^publish:/{print $2; exit}' <<< "$policy" | xargs || true)"
-
           if [[ -z "$mode" ]]; then
             mode="auto"
           fi
-          if [[ -z "$publish" ]]; then
-            publish="pr"
-          fi
 
-          if grep -q "^run_on:" <<< "$policy"; then
-            if grep -q "^[[:space:]]*-[[:space:]]*${PR_ACTION}[[:space:]]*$" <<< "$policy"; then
-              should_run=true
-            else
-              should_run=false
-            fi
-          else
-            case "$PR_ACTION" in
-              opened|synchronize|reopened) should_run=true ;;
-              *) should_run=false ;;
-            esac
-          fi
-
-          echo "run=$should_run" >> "$GITHUB_OUTPUT"
+          echo "run=true" >> "$GITHUB_OUTPUT"
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
-          echo "publish=$publish" >> "$GITHUB_OUTPUT"
           echo "reason=policy" >> "$GITHUB_OUTPUT"
 
       - name: Skip QA
@@ -130,20 +95,26 @@ jobs:
 
       - name: Run PR QA session
         if: steps.policy.outputs.run == 'true'
+        id: runqa
         shell: bash
         env:
           PR_NUMBER: ${{ steps.ctx.outputs.pr_number }}
           QA_MODE: ${{ steps.policy.outputs.mode }}
-          QA_PUBLISH: ${{ steps.policy.outputs.publish }}
         run: |
           set -euo pipefail
           short_sha="$(printf "%s" "$SHA" | cut -c1-7)"
-          goals="CI QA run for PR #${PR_NUMBER} (${short_sha})"
+          goals="CI-gated QA run for PR #${PR_NUMBER} (${short_sha})"
           sid="$(go run ./cmd/cleo qa start --source pr --ref "$PR_NUMBER" --goals "$goals" | awk '{print $4}')"
-          echo "QA session: $sid"
+          session_dir=".cleo/evidence/qa/session-$sid"
+          mkdir -p "$session_dir"
+          echo "sid=$sid" >> "$GITHUB_OUTPUT"
+          echo "session_dir=$session_dir" >> "$GITHUB_OUTPUT"
+
+          go run ./cmd/cleo qa plan --session "$sid" | tee "$session_dir/plan.txt"
+          go run ./cmd/cleo qa doctor --session "$sid" | tee "$session_dir/doctor.txt"
 
           set +e
-          go run ./cmd/cleo qa run --session "$sid" --mode "$QA_MODE"
+          go run ./cmd/cleo qa run --session "$sid" --mode "$QA_MODE" | tee "$session_dir/run.txt"
           run_status=$?
           set -e
 
@@ -152,11 +123,14 @@ jobs:
             verdict="fail"
           fi
           go run ./cmd/cleo qa finish --session "$sid" --verdict "$verdict"
-
-          if [[ "$QA_PUBLISH" == "pr" ]]; then
-            go run ./cmd/cleo qa report --session "$sid" --publish pr --ref "$PR_NUMBER"
-          else
-            go run ./cmd/cleo qa report --session "$sid"
-          fi
+          go run ./cmd/cleo qa report --session "$sid" | tee "$session_dir/report.txt"
 
           exit "$run_status"
+
+      - name: Upload QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-artifacts-${{ github.run_id }}
+          path: .cleo/evidence/qa
+          if-no-files-found: ignore

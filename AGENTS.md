@@ -68,8 +68,8 @@ Guidance for agents working in this repository.
   - `manual`: execute manual/exploratory checks and collect artifacts.
 - Manual mode is configurable in `cleo.yml` via `qa.manual.enabled`.
 - PR QA publishing:
-  - Every publish appends a PR comment (historical runs).
-  - Latest summary is upserted in PR body between `<!-- cleo-qa-results:start -->` and `<!-- cleo-qa-results:end -->`.
+  - CI-triggered QA keeps results in workflow logs and uploaded artifacts.
+  - PR comment/body publishing is optional and should not be the default automation path.
 - PR QA policy:
   - Policy is read from PR body between `<!-- cleo-qa-policy:start -->` and `<!-- cleo-qa-policy:end -->`.
   - `mode` defaults to `auto` when absent.

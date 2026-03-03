@@ -22,6 +22,7 @@
 - "plan QA from BDD AC" -> `cleo qa plan --session <id>`
 - "run QA guidance (default automated-coverage mode)" -> `cleo qa run --session <id> --mode auto`
 - "run QA manual checks (if enabled)" -> `cleo qa run --session <id> --mode manual`
+- "publish QA report to PR (comment + latest summary block)" -> `cleo qa report --session <id> --publish pr --ref <pr>`
 
 ## Agent Self-Discovery
 

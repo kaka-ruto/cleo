@@ -33,6 +33,11 @@ criteria:
       - replace_with_evidence_artifact
 <!-- cleo-ac:end -->
 
+## QA Results
+<!-- cleo-qa-results:start -->
+_No QA report published yet._
+<!-- cleo-qa-results:end -->
+
 ## Observability
 - Expected signals:
 - Dashboard/alerts:

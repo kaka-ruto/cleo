@@ -48,6 +48,7 @@ Guidance for agents working in this repository.
 - "run QA guidance (default automated-coverage mode)" -> `cleo qa run --session <id> --mode auto`
 - "run QA manual checks (if enabled)" -> `cleo qa run --session <id> --mode manual`
 - "log QA findings as tasks" -> `cleo qa log --session <id> --title <text> --details <text>`
+- "publish QA report to PR (comment history + latest body summary)" -> `cleo qa report --session <id> --publish pr --ref <pr>`
 
 ## QA Contract
 
@@ -64,6 +65,9 @@ Guidance for agents working in this repository.
   - `auto` (default): verify behaviors are sufficiently covered by automated tests.
   - `manual`: execute manual/exploratory checks and collect artifacts.
 - Manual mode is configurable in `cleo.yml` via `qa.manual.enabled`.
+- PR QA publishing:
+  - Every publish appends a PR comment (historical runs).
+  - Latest summary is upserted in PR body between `<!-- cleo-qa-results:start -->` and `<!-- cleo-qa-results:end -->`.
 
 ## Design Rules
 

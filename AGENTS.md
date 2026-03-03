@@ -19,6 +19,7 @@ Guidance for agents working in this repository.
 - Do not jump to raw `gh` unless `cleo` has no equivalent.
 - Use `--non-interactive` in agent/automation contexts to avoid stalls.
 - After every significant improvement, publish a release using `cleo release plan|cut|publish|verify`.
+- `cleo update` should only apply safe additive migrations (no destructive config overwrites).
 
 ## Local Commands
 

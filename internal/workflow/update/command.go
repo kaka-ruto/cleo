@@ -1,6 +1,7 @@
 package update
 
 import "fmt"
+import basesetup "github.com/cafaye/cleo/internal/setup"
 
 type Command struct {
 	updater *ReleaseUpdater
@@ -14,6 +15,9 @@ func New(current string) *Command {
 func (c *Command) Execute(_ bool) error {
 	if err := c.updater.UpdateLatest(c.current); err != nil {
 		return fmt.Errorf("release update failed: %w", err)
+	}
+	if err := basesetup.ApplyPostUpdateMigrations(nil); err != nil {
+		return fmt.Errorf("post-update migration failed: %w", err)
 	}
 	return nil
 }

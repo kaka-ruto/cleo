@@ -18,6 +18,7 @@
 - "cut release tag" -> `cleo release cut --version vX.Y.Z`
 - "publish release" -> `cleo release publish --version vX.Y.Z`
 - "verify release" -> `cleo release verify --version vX.Y.Z`
+- After `cleo update`, Cleo applies safe additive setup migrations for existing repos (missing config defaults + QA kit assets) without overwriting existing config values.
 - "start QA from PR AC block" -> `cleo qa start --source pr --ref <pr> --goals <text>`
 - "bootstrap reusable QA kit files" -> `cleo qa init`
 - "plan QA from BDD AC" -> `cleo qa plan --session <id>`

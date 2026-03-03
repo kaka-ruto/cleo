@@ -34,3 +34,6 @@ go.work.sum
 # Local script logs
 logs/
 dist/
+
+# Local QA/browser evidence artifacts
+.cleo/evidence/

@@ -23,7 +23,14 @@ func BuildPlan(in Input) (Plan, error) {
 		return Plan{Name: "finish", Description: "Finish QA session"}, nil
 	case "report":
 		if flagValue(in.Args, "--session") == "" {
-			return Plan{}, fmt.Errorf("usage: cleo qa report --session <id>")
+			return Plan{}, fmt.Errorf("usage: cleo qa report --session <id> [--publish <pr>] [--ref <pr>]")
+		}
+		publish := flagValue(in.Args, "--publish")
+		if publish != "" && publish != "pr" {
+			return Plan{}, fmt.Errorf("--publish must be pr")
+		}
+		if publish == "pr" && flagValue(in.Args, "--ref") == "" {
+			// allowed: resolve from session source/ref
 		}
 		return Plan{Name: "report", Description: "Print QA session report", ReadOnly: true}, nil
 	case "plan":

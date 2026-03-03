@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"os/exec"
 	"sort"
 	"strings"
@@ -26,6 +27,11 @@ type Adapter struct {
 	loader   qacatalog.Loader
 	now      func() time.Time
 }
+
+const (
+	qaSummaryStart = "<!-- cleo-qa-results:start -->"
+	qaSummaryEnd   = "<!-- cleo-qa-results:end -->"
+)
 
 func NewAdapter(store *taskstore.Store, repoKey string, cfg *config.Config) *Adapter {
 	return &Adapter{
@@ -79,8 +85,12 @@ func (a *Adapter) Finish(sessionID int64, verdict string) error {
 	return a.store.FinishSession(context.Background(), sessionID, verdict, a.now())
 }
 
-func (a *Adapter) Report(sessionID int64) (string, error) {
+func (a *Adapter) Report(sessionID int64, publish string, ref string) (string, error) {
 	session, err := a.store.Session(context.Background(), sessionID)
+	if err != nil {
+		return "", err
+	}
+	doc, err := qacontract.LoadString(session.ACText)
 	if err != nil {
 		return "", err
 	}
@@ -95,13 +105,32 @@ func (a *Adapter) Report(sessionID int64) (string, error) {
 	lines = append(lines, "")
 	if len(tasks) == 0 {
 		lines = append(lines, "No tasks logged.")
-		return strings.Join(lines, "\n"), nil
+	} else {
+		lines = append(lines, "Tasks:")
+		for _, task := range tasks {
+			lines = append(lines, fmt.Sprintf("- #%d [%s] %s (status=%s occurrences=%d)", task.ID, task.Severity, task.Title, task.Status, task.Occurrences))
+		}
 	}
-	lines = append(lines, "Tasks:")
-	for _, task := range tasks {
-		lines = append(lines, fmt.Sprintf("- #%d [%s] %s (status=%s occurrences=%d)", task.ID, task.Severity, task.Title, task.Status, task.Occurrences))
+
+	text := strings.Join(lines, "\n")
+	if strings.TrimSpace(publish) == "" {
+		return text, nil
 	}
-	return strings.Join(lines, "\n"), nil
+	if strings.TrimSpace(publish) != "pr" {
+		return "", fmt.Errorf("--publish must be pr")
+	}
+	prRef := strings.TrimSpace(ref)
+	if prRef == "" {
+		if strings.TrimSpace(session.Source) != "pr" || strings.TrimSpace(session.Ref) == "" {
+			return "", fmt.Errorf("publish=pr requires --ref when session source is not pr")
+		}
+		prRef = strings.TrimSpace(session.Ref)
+	}
+	md := a.renderPRReportMarkdown(session, doc, tasks)
+	if err := a.publishReportToPR(prRef, md); err != nil {
+		return "", err
+	}
+	return text + "\n\nPublished QA report to PR " + prRef, nil
 }
 
 func (a *Adapter) Plan(sessionID int64) (string, error) {
@@ -309,4 +338,81 @@ func emptyDefault(v string, d string) string {
 		return d
 	}
 	return v
+}
+
+func (a *Adapter) renderPRReportMarkdown(session taskstore.Session, doc qacontract.Document, tasks []taskstore.Task) string {
+	var lines []string
+	lines = append(lines, fmt.Sprintf("### QA Session %d", session.ID))
+	lines = append(lines, fmt.Sprintf("- Verdict: `%s`", emptyDefault(session.Verdict, "pending")))
+	lines = append(lines, fmt.Sprintf("- Source: `%s` `%s`", session.Source, session.Ref))
+	lines = append(lines, fmt.Sprintf("- Goals: %s", session.Goals))
+	lines = append(lines, "")
+	lines = append(lines, "#### BDD Checklist")
+	checked := len(tasks) == 0 && strings.TrimSpace(session.Verdict) == "pass"
+	box := " "
+	if checked {
+		box = "x"
+	}
+	for _, c := range doc.Criteria {
+		lines = append(lines, fmt.Sprintf("- [%s] %s: %s", box, c.ID, c.Title))
+		for _, outcome := range c.Then {
+			lines = append(lines, fmt.Sprintf("  - [%s] %s", box, outcome))
+		}
+	}
+	lines = append(lines, "")
+	if len(tasks) == 0 {
+		lines = append(lines, "#### Findings")
+		lines = append(lines, "- None")
+	} else {
+		lines = append(lines, "#### Findings")
+		for _, task := range tasks {
+			lines = append(lines, fmt.Sprintf("- #%d [%s] %s", task.ID, task.Severity, task.Title))
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+func (a *Adapter) publishReportToPR(prRef, report string) error {
+	repo := strings.TrimSpace(a.cfg.GitHub.Owner) + "/" + strings.TrimSpace(a.cfg.GitHub.Repo)
+	if _, err := exec.Command("gh", "pr", "comment", prRef, "--repo", repo, "--body", report).CombinedOutput(); err != nil {
+		return fmt.Errorf("post QA PR comment: %w", err)
+	}
+	view := exec.Command("gh", "pr", "view", prRef, "--repo", repo, "--json", "body", "--jq", ".body")
+	out, err := view.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("read PR body for QA summary update: %s", strings.TrimSpace(string(out)))
+	}
+	body := string(out)
+	summaryBlock := qaSummaryStart + "\n" + report + "\n" + qaSummaryEnd
+	next := upsertMarkerBlock(body, qaSummaryStart, qaSummaryEnd, summaryBlock)
+	tmp, err := os.CreateTemp("", "cleo-qa-pr-body-*.md")
+	if err != nil {
+		return fmt.Errorf("create temp PR body file: %w", err)
+	}
+	defer os.Remove(tmp.Name())
+	if _, err := tmp.WriteString(next); err != nil {
+		return fmt.Errorf("write temp PR body file: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("close temp PR body file: %w", err)
+	}
+	edit := exec.Command("gh", "pr", "edit", prRef, "--repo", repo, "--body-file", tmp.Name())
+	if out, err := edit.CombinedOutput(); err != nil {
+		return fmt.Errorf("update PR body QA summary: %s", strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+func upsertMarkerBlock(body, start, end, block string) string {
+	si := strings.Index(body, start)
+	ei := strings.Index(body, end)
+	if si >= 0 && ei > si {
+		ei += len(end)
+		return strings.TrimSpace(body[:si]) + "\n\n" + block + "\n\n" + strings.TrimSpace(body[ei:])
+	}
+	trimmed := strings.TrimSpace(body)
+	if trimmed == "" {
+		return block + "\n"
+	}
+	return trimmed + "\n\n## QA Results\n" + block + "\n"
 }

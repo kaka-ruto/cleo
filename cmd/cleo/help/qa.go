@@ -16,7 +16,7 @@ func PrintQA(out io.Writer) {
 	fmt.Fprintln(out, "  run --session <id> [--mode <auto|manual>]")
 	fmt.Fprintln(out, "  log --session <id> --title <text> --details <text> [--severity <low|medium|high|critical>]")
 	fmt.Fprintln(out, "  finish --session <id> --verdict <pass|fail|blocked>")
-	fmt.Fprintln(out, "  report --session <id>")
+	fmt.Fprintln(out, "  report --session <id> [--publish <pr>] [--ref <pr>]")
 	fmt.Fprintln(out, "  help [command]")
 }
 
@@ -37,7 +37,7 @@ func PrintQACommand(out io.Writer, cmd string) bool {
 	case "finish":
 		fmt.Fprintln(out, "usage: cleo qa finish --session <id> --verdict <pass|fail|blocked>")
 	case "report":
-		fmt.Fprintln(out, "usage: cleo qa report --session <id>")
+		fmt.Fprintln(out, "usage: cleo qa report --session <id> [--publish <pr>] [--ref <pr>]")
 	default:
 		return false
 	}

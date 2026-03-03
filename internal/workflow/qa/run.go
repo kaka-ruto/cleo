@@ -51,7 +51,7 @@ func Execute(a Actions, in Input) (Result, error) {
 		if err != nil {
 			return Result{}, err
 		}
-		text, err := a.Report(sessionID)
+		text, err := a.Report(sessionID, flagValue(in.Args, "--publish"), flagValue(in.Args, "--ref"))
 		if err != nil {
 			return Result{}, err
 		}

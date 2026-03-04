@@ -1,13 +1,41 @@
 # cleo
 
-Deterministic CLI for GitHub PR operations.
+Cleo is the master CLI for humans and agents.
+
+## Positioning
+
+### What It Is
+
+- A deterministic CLI that turns common engineering work into explicit, repeatable workflows.
+- A bridge between human intent and agent execution.
+- A quality-and-delivery harness that standardizes how PRs, QA, tasks, and releases are done.
+
+### What It Does Today
+
+- `cleo pr`: structured PR creation, checks, gating, and merge safety.
+- `cleo qa`: BDD-style acceptance criteria, policy-driven QA runs, and CI-integrated QA execution.
+- `cleo task`: captures and tracks follow-up work from QA/results.
+- `cleo release`: plan, cut, publish, verify with release discipline.
+- `cleo setup` / `cleo update`: safe, additive bootstrap and maintenance.
+
+### Why It Exists
+
+- Teams are adopting coding agents quickly, but execution quality is inconsistent.
+- Cleo gives agents rails: clear contracts, predictable outputs, and auditable steps.
+- It reduces handholding while improving reliability.
+
+### What It Intends To Be
+
+- The default control plane for agentic software delivery.
+- A reusable standard any repo can adopt, regardless of stack.
+- A system where humans define intent and policy, and agents execute with rigor.
 
 ## How Setup Works
 
 `cleo` has two setup layers:
 
 1. Global setup (one-time per machine): install `cleo` binary and dependencies.
-2. Repository setup (one-time per repo): create/update that repo's `cleo.yml`.
+2. Repository setup (one-time per repo): initialize/maintain that repo's workflow config and QA kit assets.
 
 After global install, you can use the same `cleo` command in any repository. You only run `cleo setup` again when entering a new repo for the first time.
 
@@ -42,7 +70,11 @@ Use normally after that:
 
 ```bash
 cleo pr status <pr>
+cleo qa init
+cleo qa scaffold
 cleo pr doctor
+cleo task list
+cleo release latest
 ```
 
 ## Help
@@ -94,12 +126,14 @@ NON_INTERACTIVE=1 SCAN_ROOTS="$HOME/Code,$HOME/work" curl -fsSL https://raw.gith
 
 ## Setup Wizard
 
-Run a guided per-repo setup with dependency checks, optional installs, GitHub auth, and `cleo.yml` generation:
+Run a guided per-repo setup with dependency checks, optional installs, GitHub auth, and additive repository bootstrap:
 
 ```bash
 cleo setup
 cleo setup --non-interactive
 ```
+
+`cleo setup` keeps existing `cleo.yml` and applies only safe additive migrations (missing defaults + QA kit assets).
 
 ## Build
 
@@ -141,6 +175,30 @@ cleo pr merge <pr> [--no-watch] [--no-run] [--no-rebase] [--delete-branch]
 cleo pr rebase <pr>
 cleo pr retarget <pr> --base <branch>
 cleo pr batch [--from <pr>] [--no-watch] [--no-run] [--no-rebase]
+```
+
+## QA Commands
+
+```bash
+cleo qa init
+cleo qa scaffold [--title <text>]
+cleo qa start --source <branch|pr|request> --ref <name|id|text> --goals <text> [--ac <yaml>]
+cleo qa plan --session <id>
+cleo qa doctor --session <id>
+cleo qa run --session <id> [--mode <auto|manual|pr>]
+cleo qa log --session <id> --title <text> --details <text> [--severity <low|medium|high|critical>]
+cleo qa finish --session <id> --verdict <pass|fail|blocked>
+cleo qa report --session <id> [--publish <pr>] [--ref <pr>]
+```
+
+## Task Commands
+
+```bash
+cleo task list
+cleo task show --task <id>
+cleo task claim --task <id>
+cleo task close --task <id>
+cleo task work --task <id>
 ```
 
 ## Release Commands

@@ -24,6 +24,47 @@ All notable changes to this project will be documented in this file.
 
 - Add verification commands/results for unreleased work.
 
+## [v0.2.3]
+
+### Summary
+
+- Added a new project-agnostic `cleo cost estimate` workflow to estimate engineering and team-loaded delivery cost from repository metrics.
+
+### Highlights
+
+- Added top-level `cost` command family and `estimate` subcommand:
+  - `cleo cost help`
+  - `cleo cost estimate`
+- Implemented language-agnostic codebase scanning with file-type classification:
+  - code, tests, docs, config
+  - mixed-language detection and language mix reporting
+- Added rate source modes:
+  - `cached` (default deterministic US benchmark baseline)
+  - `manual` (`--hourly-rate` override)
+  - `live` (country-adjusted rates via live economic data)
+- Added country-aware live market estimation:
+  - `--country <name|ISO2>`
+  - dynamic country resolution without hardcoded country list
+  - live PPP data lookup and baseline scaling for low/avg/high rate bands
+- Added help text, README docs, and workflow tests for the new command family.
+
+### Breaking Changes
+
+- None.
+
+### Migration Notes
+
+- No migration required.
+- Teams can adopt immediately:
+  - `cleo cost estimate`
+  - `cleo cost estimate --rates-source live --country <country>`
+
+### Verification
+
+- `go test ./internal/workflow/cost ./cmd/cleo/help ./cmd/cleo`
+- `go run ./cmd/cleo cost estimate --path .`
+- `go run ./cmd/cleo cost estimate --path . --rates-source live --country Kenya`
+
 ## [v0.2.2]
 
 ### Summary

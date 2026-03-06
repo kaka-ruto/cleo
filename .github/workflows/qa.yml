@@ -1,11 +1,12 @@
 name: qa
 
 on:
-  workflow_run:
-    workflows:
-      - ci
+  pull_request:
     types:
-      - completed
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
   workflow_dispatch:
 
 permissions:
@@ -13,20 +14,19 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.workflow_run.head_branch || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   qa:
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success')
+      (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
-      BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+      SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,13 +58,40 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pr_number="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' || true)"
+          pr_number="${{ github.event.pull_request.number || '' }}"
+          if [[ -z "$pr_number" || "$pr_number" == "null" ]]; then
+            pr_number="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' || true)"
+          fi
           if [[ -z "$pr_number" || "$pr_number" == "null" ]]; then
             echo "has_pr=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "has_pr=true" >> "$GITHUB_OUTPUT"
           echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for non-QA checks to pass
+        if: steps.ctx.outputs.has_pr == 'true'
+        shell: bash
+        env:
+          PR_NUMBER: ${{ steps.ctx.outputs.pr_number }}
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 60); do
+            data="$(gh pr view "$PR_NUMBER" --json statusCheckRollup --jq '.statusCheckRollup')"
+            pending="$(jq '[.[] | select((.workflowName // "" | ascii_downcase) != "qa") | select((.status // "") != "COMPLETED")] | length' <<< "$data")"
+            failed="$(jq '[.[] | select((.workflowName // "" | ascii_downcase) != "qa") | select((.status // "") == "COMPLETED") | select((.conclusion // "SUCCESS") != "SUCCESS" and (.conclusion // "") != "NEUTRAL")] | length' <<< "$data")"
+            if [[ "$failed" -gt 0 ]]; then
+              echo "Detected failing non-QA checks; aborting QA run."
+              exit 1
+            fi
+            if [[ "$pending" -eq 0 ]]; then
+              echo "Non-QA checks are green; proceeding."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Timed out waiting for non-QA checks to complete."
+          exit 1
 
       - name: Skip when no PR context
         if: steps.ctx.outputs.has_pr != 'true'

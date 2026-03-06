@@ -27,6 +27,10 @@ func PrintRelease(out io.Writer) {
 	fmt.Fprintln(out, "  cleo release cut --version v0.1.0")
 	fmt.Fprintln(out, "  cleo release publish --version v0.1.0 --final --summary \"...\" --highlights \"...\"")
 	fmt.Fprintln(out, "  cleo release go publish --version v0.1.0 --final")
+	fmt.Fprintln(out, "")
+	fmt.Fprintln(out, "notes:")
+	fmt.Fprintln(out, "  - Go repos (go.mod) auto-build and attach multi-arch binaries + checksums.")
+	fmt.Fprintln(out, "  - Ruby gem repos (*.gemspec) auto-build and attach .gem + checksums.")
 }
 
 func PrintReleaseCommand(out io.Writer, cmd string) bool {

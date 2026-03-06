@@ -83,6 +83,12 @@ func (a *Adapter) Publish(version string, draft bool, generateNotes bool, notes 
 			return err
 		}
 		args = append(args, assets...)
+	} else if releaseruntime.DetectRuby(a.root) {
+		assets, err := releaseruntime.BuildRubyReleaseArtifacts(a.root, version)
+		if err != nil {
+			return err
+		}
+		args = append(args, assets...)
 	}
 	_, err := a.gh.Run(args...)
 	return err
@@ -144,6 +150,13 @@ func (a *Adapter) Verify(version string) error {
 	}
 	if err := ghcli.DecodeJSON(out, &payload); err != nil {
 		return err
+	}
+	if releaseruntime.DetectRuby(a.root) {
+		names := make([]string, 0, len(payload.Assets))
+		for _, asset := range payload.Assets {
+			names = append(names, strings.TrimSpace(asset.Name))
+		}
+		return releaseruntime.VerifyRubyAssets(names)
 	}
 	have := map[string]bool{}
 	for _, a := range payload.Assets {

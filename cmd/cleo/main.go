@@ -9,6 +9,7 @@ import (
 	corepr "github.com/cafaye/cleo/internal/pr"
 	"github.com/cafaye/cleo/internal/state"
 	"github.com/cafaye/cleo/internal/taskstore"
+	workflowcost "github.com/cafaye/cleo/internal/workflow/cost"
 	workflowpr "github.com/cafaye/cleo/internal/workflow/pr"
 	workflowqa "github.com/cafaye/cleo/internal/workflow/qa"
 	workflowrelease "github.com/cafaye/cleo/internal/workflow/release"
@@ -49,6 +50,10 @@ func run(args []string) int {
 			help.PrintTask(os.Stdout)
 			return 0
 		}
+		if len(args) > 2 && args[2] == "cost" {
+			help.PrintCost(os.Stdout)
+			return 0
+		}
 		if len(args) > 2 {
 			if !help.PrintCommand(os.Stdout, args[2]) {
 				fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", args[2])
@@ -74,7 +79,7 @@ func run(args []string) int {
 		}
 		return 0
 	}
-	if args[1] != "pr" && args[1] != "release" && args[1] != "qa" && args[1] != "task" {
+	if args[1] != "pr" && args[1] != "release" && args[1] != "qa" && args[1] != "task" && args[1] != "cost" {
 		fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", args[1])
 		help.PrintRoot(os.Stderr)
 		return 2
@@ -87,6 +92,9 @@ func run(args []string) int {
 	}
 	if args[1] == "task" {
 		return runTask(args)
+	}
+	if args[1] == "cost" {
+		return runCost(args)
 	}
 	if len(args) < 3 {
 		help.PrintPR(os.Stdout)
@@ -109,6 +117,30 @@ func run(args []string) int {
 		return 1
 	}
 	cmd := workflowpr.New(workflowpr.NewAdapter(corepr.NewService(cfg)))
+	if err := cmd.Execute(args[2], args[3:]); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	return 0
+}
+
+func runCost(args []string) int {
+	if len(args) < 3 {
+		help.PrintCost(os.Stdout)
+		return 0
+	}
+	if args[2] == "help" || args[2] == "--help" || args[2] == "-h" {
+		if len(args) > 3 && !help.PrintCostCommand(os.Stdout, args[3]) {
+			fmt.Fprintf(os.Stderr, "unknown cost command: %s\n\n", args[3])
+			help.PrintCost(os.Stderr)
+			return 2
+		}
+		if len(args) <= 3 {
+			help.PrintCost(os.Stdout)
+		}
+		return 0
+	}
+	cmd := workflowcost.New()
 	if err := cmd.Execute(args[2], args[3:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1

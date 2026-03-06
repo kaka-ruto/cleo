@@ -24,6 +24,7 @@ func TestPrintRoot(t *testing.T) {
 		"update",
 		"pr",
 		"release",
+		"cost",
 		"cleo pr status 123",
 	)
 }
@@ -35,6 +36,17 @@ func TestPrintCommandUpdate(t *testing.T) {
 		t.Fatal("expected update command help")
 	}
 	if !strings.Contains(out.String(), "usage: cleo update") {
+		t.Fatalf("unexpected output: %q", out.String())
+	}
+}
+
+func TestPrintCommandCost(t *testing.T) {
+	var out bytes.Buffer
+	ok := PrintCommand(&out, "cost")
+	if !ok {
+		t.Fatal("expected cost command help")
+	}
+	if !strings.Contains(out.String(), "usage: cleo cost") {
 		t.Fatalf("unexpected output: %q", out.String())
 	}
 }

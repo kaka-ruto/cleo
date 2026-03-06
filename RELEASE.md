@@ -40,6 +40,7 @@ cleo release verify --version vX.Y.Z
 - Version must use configured prefix (`release.tag_prefix`, default `v`).
 - `publish` supports `--draft` and `--no-notes`.
 - In Go repositories (`go.mod`), `publish` auto-builds multi-arch tarballs and `checksums.txt`.
+- In Ruby gem repositories (`*.gemspec`), `publish` auto-builds `.gem` + `checksums.txt`.
 - `cleo update` pulls from latest GitHub release artifacts and verifies checksums.
 - Release notes are generated in a fixed format with required sections:
   - Summary

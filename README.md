@@ -201,6 +201,16 @@ cleo task close --task <id>
 cleo task work --task <id>
 ```
 
+## Cost Commands
+
+```bash
+cleo cost help
+cleo cost estimate
+cleo cost estimate --path . --rates-source cached
+cleo cost estimate --rates-source live --country Germany
+cleo cost estimate --rates-source manual --hourly-rate 160
+```
+
 ## Release Commands
 
 ```bash
@@ -230,6 +240,12 @@ For Go repositories (`go.mod` present), `publish` automatically:
 - packages tarballs
 - generates `checksums.txt`
 - uploads artifacts to the GitHub release
+
+For Ruby gem repositories (`*.gemspec` present), `publish` automatically:
+
+- builds the gem into `dist/release/<version>/`
+- writes `checksums.txt`
+- uploads the `.gem` and checksum file to the GitHub release
 
 For reuse in other projects, configure release packaging in `cleo.yml`:
 

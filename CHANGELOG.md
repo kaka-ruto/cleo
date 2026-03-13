@@ -24,6 +24,46 @@ All notable changes to this project will be documented in this file.
 
 - Add verification commands/results for unreleased work.
 
+## [v0.2.5]
+
+### Summary
+
+- Added first-class `cleo skill` workflows with built-in CEO skill support and project override customization.
+
+### Highlights
+
+- Added top-level `skill` command family:
+  - `cleo skill list`
+  - `cleo skill use <name>`
+  - `cleo skill customize <name>`
+  - `cleo skill check [name]`
+- Added built-in `ceo` skill bundled with Cleo under embedded skill assets.
+- Added deterministic skill resolution order across project/user locations, then built-ins.
+- Added skill frontmatter validation checks (`name` and `description` required).
+- Updated CLI help, README, and agent templates to support natural-language requests like `use <x> skill`.
+- Added automated tests for resolver behavior and skill workflow command execution.
+
+### Breaking Changes
+
+- None.
+
+### Migration Notes
+
+- No migration required.
+- Teams can start using skills immediately via:
+  - `cleo skill list`
+  - `cleo skill use ceo`
+- To share custom skill behavior in a repository:
+  - `cleo skill customize ceo`
+  - commit `.cleo/skills/ceo/SKILL.md`
+
+### Verification
+
+- `go test ./...`
+- `go run ./cmd/cleo help skill`
+- `go run ./cmd/cleo skill list`
+- `go run ./cmd/cleo skill use ceo`
+
 ## [v0.2.4]
 
 ### Summary

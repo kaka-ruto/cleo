@@ -6,6 +6,7 @@
 - For PR tasks, start with `cleo pr help` and use `cleo pr ...`.
 - For release tasks, start with `cleo release help` and use `cleo release ...`.
 - For QA tasks, start with `cleo qa help` and keep ACs in BDD form (`given/when/then`).
+- For skill tasks, start with `cleo skill help` and use `cleo skill ...`.
 - In automation/agent runs, use `--non-interactive` to avoid prompts.
 - If `cleo` does not support a required action, document the fallback command clearly.
 
@@ -26,6 +27,7 @@
 - "run QA manual checks (if enabled)" -> `cleo qa run --session <id> --mode manual`
 - "run QA guidance using PR policy" -> `cleo qa run --session <id> --mode pr`
 - "publish QA report to PR (comment + latest summary block)" -> `cleo qa report --session <id> --publish pr --ref <pr>`
+- "use ceo skill" / "use <x> skill" -> `cleo skill use <x>` then apply that SKILL.md as the instruction overlay for the current response
 - QA evidence root comes from `qa.evidence_dir` (default `.cleo/evidence`) and session outputs go to `.cleo/evidence/qa/session-<id>`.
 
 ## Agent Self-Discovery
@@ -34,4 +36,5 @@
   - `cleo help`
   - `cleo pr help`
   - `cleo release help`
+  - `cleo skill help`
 - Prefer workflow command outputs as source of truth for next steps.

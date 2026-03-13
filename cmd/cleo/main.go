@@ -14,6 +14,7 @@ import (
 	workflowqa "github.com/cafaye/cleo/internal/workflow/qa"
 	workflowrelease "github.com/cafaye/cleo/internal/workflow/release"
 	workflowsetup "github.com/cafaye/cleo/internal/workflow/setup"
+	workflowskill "github.com/cafaye/cleo/internal/workflow/skill"
 	workflowtask "github.com/cafaye/cleo/internal/workflow/task"
 	workflowupdate "github.com/cafaye/cleo/internal/workflow/update"
 )
@@ -54,6 +55,10 @@ func run(args []string) int {
 			help.PrintCost(os.Stdout)
 			return 0
 		}
+		if len(args) > 2 && args[2] == "skill" {
+			help.PrintSkill(os.Stdout)
+			return 0
+		}
 		if len(args) > 2 {
 			if !help.PrintCommand(os.Stdout, args[2]) {
 				fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", args[2])
@@ -79,7 +84,7 @@ func run(args []string) int {
 		}
 		return 0
 	}
-	if args[1] != "pr" && args[1] != "release" && args[1] != "qa" && args[1] != "task" && args[1] != "cost" {
+	if args[1] != "pr" && args[1] != "release" && args[1] != "qa" && args[1] != "task" && args[1] != "cost" && args[1] != "skill" {
 		fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", args[1])
 		help.PrintRoot(os.Stderr)
 		return 2
@@ -95,6 +100,9 @@ func run(args []string) int {
 	}
 	if args[1] == "cost" {
 		return runCost(args)
+	}
+	if args[1] == "skill" {
+		return runSkill(args)
 	}
 	if len(args) < 3 {
 		help.PrintPR(os.Stdout)
@@ -141,6 +149,34 @@ func runCost(args []string) int {
 		return 0
 	}
 	cmd := workflowcost.New()
+	if err := cmd.Execute(args[2], args[3:]); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	return 0
+}
+
+func runSkill(args []string) int {
+	if len(args) < 3 {
+		help.PrintSkill(os.Stdout)
+		return 0
+	}
+	if args[2] == "help" || args[2] == "--help" || args[2] == "-h" {
+		if len(args) > 3 && !help.PrintSkillCommand(os.Stdout, args[3]) {
+			fmt.Fprintf(os.Stderr, "unknown skill command: %s\n\n", args[3])
+			help.PrintSkill(os.Stderr)
+			return 2
+		}
+		if len(args) <= 3 {
+			help.PrintSkill(os.Stdout)
+		}
+		return 0
+	}
+	cmd, err := workflowskill.New()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
 	if err := cmd.Execute(args[2], args[3:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1

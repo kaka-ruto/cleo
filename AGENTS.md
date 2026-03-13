@@ -16,6 +16,7 @@ Guidance for agents working in this repository.
 - PR work: start with `cleo pr help`, then use `cleo pr ...`.
 - Release work: start with `cleo release help`, then use `cleo release ...`.
 - QA work: start with `cleo qa help`, then use `cleo qa ...`.
+- Skill work: start with `cleo skill help`, then use `cleo skill ...`.
 - Do not jump to raw `gh` unless `cleo` has no equivalent.
 - Use `--non-interactive` in agent/automation contexts to avoid stalls.
 - After every significant improvement, publish a release using `cleo release plan|cut|publish|verify`.
@@ -53,6 +54,7 @@ Guidance for agents working in this repository.
 - "run QA using PR policy mode" -> `cleo qa run --session <id> --mode pr`
 - "log QA findings as tasks" -> `cleo qa log --session <id> --title <text> --details <text>`
 - "publish QA report to PR (comment history + latest body summary)" -> `cleo qa report --session <id> --publish pr --ref <pr>`
+- "use ceo skill" / "use <x> skill" -> `cleo skill use <x>` then apply that SKILL.md as instruction overlay for the current response
 
 ## QA Contract
 

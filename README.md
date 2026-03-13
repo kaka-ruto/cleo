@@ -16,6 +16,7 @@ Cleo is the master CLI for humans and agents.
 - `cleo qa`: BDD-style acceptance criteria, policy-driven QA runs, and CI-integrated QA execution.
 - `cleo task`: captures and tracks follow-up work from QA/results.
 - `cleo release`: plan, cut, publish, verify with release discipline.
+- `cleo skill`: resolve, use, validate, and customize agent skills.
 - `cleo setup` / `cleo update`: safe, additive bootstrap and maintenance.
 
 ### Why It Exists
@@ -83,6 +84,7 @@ cleo release latest
 cleo help
 cleo pr help
 cleo pr help merge
+cleo skill help
 ```
 
 ## Agent Setup
@@ -199,6 +201,16 @@ cleo task show --task <id>
 cleo task claim --task <id>
 cleo task close --task <id>
 cleo task work --task <id>
+```
+
+## Skill Commands
+
+```bash
+cleo skill list
+cleo skill use ceo
+cleo skill customize ceo
+cleo skill check
+cleo skill check ceo
 ```
 
 ## Cost Commands

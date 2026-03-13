@@ -16,6 +16,7 @@ func PrintRoot(out io.Writer) {
 	fmt.Fprintln(out, "  qa          Run QA session commands")
 	fmt.Fprintln(out, "  task        Run QA task board commands")
 	fmt.Fprintln(out, "  cost        Run project cost estimation commands")
+	fmt.Fprintln(out, "  skill       Resolve and manage agent skills")
 	fmt.Fprintln(out, "  version     Print cleo version")
 	fmt.Fprintln(out, "  help        Show help")
 	fmt.Fprintln(out, "")
@@ -30,6 +31,7 @@ func PrintRoot(out io.Writer) {
 	fmt.Fprintln(out, "  cleo qa help")
 	fmt.Fprintln(out, "  cleo task help")
 	fmt.Fprintln(out, "  cleo cost help")
+	fmt.Fprintln(out, "  cleo skill help")
 	fmt.Fprintln(out, "  cleo pr status 123")
 }
 
@@ -49,6 +51,8 @@ func PrintCommand(out io.Writer, cmd string) bool {
 		fmt.Fprintln(out, "usage: cleo task <command>")
 	case "cost":
 		fmt.Fprintln(out, "usage: cleo cost <command>")
+	case "skill":
+		fmt.Fprintln(out, "usage: cleo skill <command>")
 	case "version":
 		fmt.Fprintln(out, "usage: cleo version")
 	default:

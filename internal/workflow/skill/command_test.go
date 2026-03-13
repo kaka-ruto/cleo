@@ -29,8 +29,8 @@ func TestExecuteUsePrintsSkill(t *testing.T) {
 	if err := cmd.Execute("use", []string{"ceo"}); err != nil {
 		t.Fatalf("use: %v", err)
 	}
-	if !strings.Contains(out.String(), "# CEO Skill") {
-		t.Fatalf("expected ceo body, got: %s", out.String())
+	if !strings.Contains(out.String(), "# Mega Plan Review Mode") {
+		t.Fatalf("expected imported ceo skill body, got: %s", out.String())
 	}
 }
 

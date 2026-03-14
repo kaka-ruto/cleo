@@ -6,26 +6,73 @@ Guidance for agents working in this repository.
 
 `cleo` is a deterministic engineering workflow CLI for GitHub-centered teams.
 
-- Keep scope on deterministic workflow families such as `cleo pr`, `cleo release`, `cleo qa`, and `cleo task`.
+- Keep scope on deterministic workflow families such as `cleo pr`, `cleo release`, `cleo qa`, `cleo task`, and `cleo skill`.
 - Prefer `cleo` workflows over raw `gh`/manual steps when a workflow command exists.
 - Prefer predictable behavior over smart behavior.
 - Agent-assist capabilities are allowed when they are bounded by explicit workflow contracts, deterministic plan/run/verify phases, and clear operator control.
 
-## Workflow Preference
+## Core Rules
 
-- PR work: start with `cleo pr help`, then use `cleo pr ...`.
-- Release work: start with `cleo release help`, then use `cleo release ...`.
-- QA work: start with `cleo qa help`, then use `cleo qa ...`.
-- Skill work: start with `cleo skill help`, then use `cleo skill ...`.
-- Do not jump to raw `gh` unless `cleo` has no equivalent.
 - Use `--non-interactive` in agent/automation contexts to avoid stalls.
-- After every significant improvement, publish a release using `cleo release plan|cut|publish|verify`.
-- `cleo update` should only apply safe additive migrations (no destructive config overwrites).
+- If `cleo` does not support a required action, document the fallback command clearly.
+- Prefer command output as source of truth for next steps.
+
+## PR Workflows
+
+- Start PR work with `cleo pr help`, then use `cleo pr ...`.
+- Preferred validation path before merge:
+  - `cleo pr doctor`
+  - `cleo pr gate <pr>`
+  - `cleo pr checks <pr>`
+- Prefer `cleo pr merge <pr>` over manual merge flows where possible.
+
+## Release Workflows
+
+- Start release work with `cleo release help`, then use `cleo release ...`.
+- Standard flow:
+  1. `cleo release plan --version vX.Y.Z`
+  2. `cleo release cut --version vX.Y.Z`
+  3. `cleo release publish --version vX.Y.Z`
+  4. `cleo release verify --version vX.Y.Z`
+- After significant improvements, publish a release following the standard flow.
 - Every release must include a proper changelog entry before running `cleo release publish`.
+
+## QA Workflows
+
+- Start QA work with `cleo qa help`, then use `cleo qa ...`.
+- Acceptance Criteria in PRs and `cleo qa start --ac` must be BDD-style YAML.
+- Each criterion should declare:
+  - `id`, `title`, `severity`, `actors`
+  - `surface` (`web|api|mobile|cli`)
+  - `environment` (default `local` unless stated)
+  - `given`, `when`, `then`
+  - `evidence_required`
+- QA run modes:
+  - `auto` (default): automated coverage verification
+  - `manual`: exploratory/manual checks
+  - `pr`: resolved from PR policy block
+- QA evidence root comes from `qa.evidence_dir` (default `.cleo/evidence`) and session outputs go to `.cleo/evidence/qa/session-<id>`.
+
+## Skills Workflows
+
+- Start skill work with `cleo skill help`, then use `cleo skill ...`.
+- Skills are instruction overlays for the current response, not separate tasks.
+- When the user says "use <x> skill" or equivalent phrasing:
+  1. Run `cleo skill use <x>`.
+  2. Apply the resolved `SKILL.md` immediately to the current response.
+  3. Follow its structure and constraints.
+- If a skill cannot be resolved, report that briefly and continue best-effort.
+- Do not invent skill content; `cleo skill use <x>` output is the source of truth.
+- For project-specific behavior, use `cleo skill customize <x>` and commit `.cleo/skills/<x>/SKILL.md` when team sharing is desired.
+
+## Setup and Update
+
+- `cleo update` should only apply safe additive migrations (no destructive config overwrites).
+- `cleo setup` should preserve existing `cleo.yml` and apply safe additive defaults/assets.
 
 ## Local Commands
 
-- Prefer Make targets over direct script or raw tool invocation.
+- Prefer Make targets over raw tool invocation.
 - Canonical commands:
   - `make fmt`
   - `make lint`
@@ -37,7 +84,6 @@ Guidance for agents working in this repository.
   - `make clean`
   - `make install-git-hooks`
 - Default pre-PR validation: run `make quality`.
-- Use `go test ./...` only for targeted fast checks while iterating; before handoff, run `make quality`.
 
 ## Intent Mapping
 
@@ -45,7 +91,6 @@ Guidance for agents working in this repository.
 - "check PR health" -> `cleo pr doctor`, `cleo pr gate`, `cleo pr checks`
 - "merge PR" -> `cleo pr merge <pr>`
 - "new release" -> `cleo release plan|cut|publish|verify`
-- Go release explicitly -> `cleo release go plan|cut|publish|verify`
 - "start QA from PR AC block" -> `cleo qa start --source pr --ref <pr> --goals <text>`
 - "bootstrap QA kit in a repo" -> `cleo qa init`
 - "plan QA from AC" -> `cleo qa plan --session <id>`
@@ -53,76 +98,40 @@ Guidance for agents working in this repository.
 - "run QA manual checks (if enabled)" -> `cleo qa run --session <id> --mode manual`
 - "run QA using PR policy mode" -> `cleo qa run --session <id> --mode pr`
 - "log QA findings as tasks" -> `cleo qa log --session <id> --title <text> --details <text>`
-- "publish QA report to PR (comment history + latest body summary)" -> `cleo qa report --session <id> --publish pr --ref <pr>`
-- "use ceo skill" / "use <x> skill" -> `cleo skill use <x>` then apply that SKILL.md as instruction overlay for the current response
+- "publish QA report to PR" -> `cleo qa report --session <id> --publish pr --ref <pr>`
+- "use ceo skill" / "use <x> skill" -> `cleo skill use <x>` then apply that `SKILL.md` as instruction overlay for the current response
 
-## QA Contract
+## Agent Self-Discovery
 
-- Acceptance Criteria in PRs and `cleo qa start --ac` must be BDD-style YAML.
-- Each criterion should declare:
-  - `id`, `title`, `severity`, `actors`
-  - `surface` (`web|api|mobile|cli`)
-  - `environment` (default to `local` unless stated)
-  - `given`, `when`, `then` (behavior contract)
-  - `evidence_required` (artifacts expected from QA run)
-- QA session evidence is written under `qa.evidence_dir/qa/session-<id>` (default `.cleo/evidence/qa/session-<id>`).
-- AC defines behavior expectations, not executable command scripts.
-- Prefer concrete, observable `then` outcomes and explicit evidence items (for example screenshot, video, API response).
-- QA run modes:
-  - `auto` (default): verify behaviors are sufficiently covered by automated tests.
-  - `manual`: execute manual/exploratory checks and collect artifacts.
-- Manual mode is configurable in `cleo.yml` via `qa.manual.enabled`.
-- PR QA publishing:
-  - CI-triggered QA keeps results in workflow logs and uploaded artifacts.
-  - PR comment/body publishing is optional and should not be the default automation path.
-- PR QA policy:
-  - Policy is read from PR body between `<!-- cleo-qa-policy:start -->` and `<!-- cleo-qa-policy:end -->`.
-  - `mode` defaults to `auto` when absent.
+- Use built-in help before acting:
+  - `cleo help`
+  - `cleo pr help`
+  - `cleo release help`
+  - `cleo qa help`
+  - `cleo task help`
+  - `cleo cost help`
+  - `cleo skill help`
 
 ## Design Rules
 
 - Keep files small and focused.
 - Prefer one responsibility per file.
-- Use concise names; single-word names are preferred when clear.
+- Use concise names when clear.
 - Keep command UX simple and scriptable.
 - Make command failures explicit and actionable.
-
-## Size Limits
-
-- Go files: max ~250 LOC.
-- Shell scripts: max ~250 LOC.
-- Functions/methods (Go and shell): max ~50 LOC.
-- If a file or function approaches these limits, split by responsibility.
-
-## Rule Of Thumb
-
-- If a file needs many comments to explain flow, split it.
-- If a function has multiple responsibilities or deep branching, split it.
-- If a file crosses soft limits, document a concrete reason.
 
 ## Configuration
 
 - `cleo.yml` at repo root is required for command execution.
 - Use strict YAML parsing (`KnownFields`).
 - Add safe defaults for common teams.
-- Avoid framework-specific assumptions (no Rails-only rules).
-
-## Command Principles
-
-- Keep onboarding polished with `cleo setup`:
-  - sequential checks
-  - explicit confirmations before installs
-  - clear progress output
-- Read-only commands: `status`, `gate`, `checks`, `watch`.
-- Mutating commands: `create`, `merge`, `run`, `rebase`, `retarget`, `batch`.
-- Mutations must validate preconditions first where possible.
-- Support dry-run mode for risky operations.
+- Avoid framework-specific assumptions.
 
 ## Testing
 
 - Every new behavior needs automated Go tests.
 - Test parser/validation logic heavily.
-- Test GitHub CLI integration via fakes; avoid network in unit tests.
+- Test integrations via fakes when feasible.
 - Keep tests deterministic and fast.
 
 ## Safety

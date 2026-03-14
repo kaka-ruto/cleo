@@ -24,6 +24,38 @@ All notable changes to this project will be documented in this file.
 
 - Add verification commands/results for unreleased work.
 
+## [v0.2.7]
+
+### Summary
+
+- Added `cleo skill install` and `cleo skill sync` for easier distribution of skills in `.agents/skills`.
+
+### Highlights
+
+- Added `cleo skill install <name> [--global|--project]` to install one resolved skill into `.agents/skills`.
+- Added `cleo skill sync [--global|--project]` to materialize all bundled skills into `.agents/skills`.
+- Updated skill help output to include new install/sync options.
+- Updated AGENTS guidance and README examples for global/project skill distribution workflows.
+
+### Breaking Changes
+
+- None.
+
+### Migration Notes
+
+- No migration required.
+- Teams can populate project skills with:
+  - `cleo skill sync --project`
+- Users can install specific skills globally with:
+  - `cleo skill install ceo --global`
+
+### Verification
+
+- `go test ./...`
+- `go run ./cmd/cleo help skill`
+- `go run ./cmd/cleo skill sync --project`
+- `go run ./cmd/cleo skill install ceo --global`
+
 ## [v0.2.6]
 
 ### Summary

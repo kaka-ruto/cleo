@@ -56,6 +56,9 @@ Guidance for agents working in this repository.
 ## Skills Workflows
 
 - Start skill work with `cleo skill help`, then use `cleo skill ...`.
+- Always read skills from both locations in this order:
+  1. `.agents/skills` (project-local, highest precedence)
+  2. `~/.agents/skills` (global user skills)
 - Skills are instruction overlays for the current response, not separate tasks.
 - When the user says "use <x> skill" or equivalent phrasing:
   1. Run `cleo skill use <x>`.

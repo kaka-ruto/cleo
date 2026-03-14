@@ -63,7 +63,7 @@ Guidance for agents working in this repository.
   3. Follow its structure and constraints.
 - If a skill cannot be resolved, report that briefly and continue best-effort.
 - Do not invent skill content; `cleo skill use <x>` output is the source of truth.
-- For project-specific behavior, use `cleo skill customize <x>` and commit `.cleo/skills/<x>/SKILL.md` when team sharing is desired.
+- For project-specific behavior, use `cleo skill customize <x>` and commit `.agents/skills/<x>/SKILL.md` when team sharing is desired.
 
 ## Setup and Update
 

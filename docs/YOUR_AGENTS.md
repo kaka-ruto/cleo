@@ -48,6 +48,7 @@
 - If a skill cannot be resolved, report that briefly and continue with best-effort default behavior.
 - Do not invent skill content; `cleo skill use <x>` output is the source of truth.
 - If users want project-specific behavior, suggest `cleo skill customize <x>` and then use the customized skill.
+- `cleo skill customize <x>` writes project skill overrides to `.agents/skills/<x>/SKILL.md`.
 
 ## Setup and Update
 

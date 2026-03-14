@@ -90,7 +90,7 @@ func (r Resolver) Customize(name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	target := filepath.Join(r.Cwd, ".cleo", "skills", src.Name, "SKILL.md")
+	target := filepath.Join(r.Cwd, ".agents", "skills", src.Name, "SKILL.md")
 	if src.Path == target {
 		return target, nil
 	}
@@ -132,12 +132,10 @@ func (r Resolver) Check(name string) ([]Source, error) {
 
 func (r Resolver) overrideCandidates(name string, canonical string) []string {
 	names := uniqueNames(name, canonical)
-	out := make([]string, 0, len(names)*4)
+	out := make([]string, 0, len(names)*2)
 	for _, n := range names {
 		out = append(out,
-			filepath.Join(r.Cwd, ".cleo", "skills", n, "SKILL.md"),
 			filepath.Join(r.Cwd, ".agents", "skills", n, "SKILL.md"),
-			filepath.Join(r.Home, ".cleo", "skills", n, "SKILL.md"),
 			filepath.Join(r.Home, ".agents", "skills", n, "SKILL.md"),
 		)
 	}
@@ -146,9 +144,7 @@ func (r Resolver) overrideCandidates(name string, canonical string) []string {
 
 func (r Resolver) searchRoots() []string {
 	return []string{
-		filepath.Join(r.Cwd, ".cleo", "skills"),
 		filepath.Join(r.Cwd, ".agents", "skills"),
-		filepath.Join(r.Home, ".cleo", "skills"),
 		filepath.Join(r.Home, ".agents", "skills"),
 	}
 }
@@ -194,14 +190,8 @@ func builtinSources() []Source {
 
 func originForPath(r Resolver, path string) string {
 	norm := filepath.Clean(path)
-	if strings.HasPrefix(norm, filepath.Join(r.Cwd, ".cleo", "skills")) {
-		return "project"
-	}
 	if strings.HasPrefix(norm, filepath.Join(r.Cwd, ".agents", "skills")) {
 		return "project"
-	}
-	if strings.HasPrefix(norm, filepath.Join(r.Home, ".cleo", "skills")) {
-		return "user"
 	}
 	if strings.HasPrefix(norm, filepath.Join(r.Home, ".agents", "skills")) {
 		return "user"

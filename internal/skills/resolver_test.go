@@ -29,10 +29,10 @@ func TestResolveFallsBackToBuiltin(t *testing.T) {
 func TestResolvePrefersProjectOverride(t *testing.T) {
 	dir := t.TempDir()
 	home := filepath.Join(dir, "home")
-	if err := os.MkdirAll(filepath.Join(dir, ".cleo", "skills", "ceo"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(dir, ".agents", "skills", "ceo"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	overridePath := filepath.Join(dir, ".cleo", "skills", "ceo", "SKILL.md")
+	overridePath := filepath.Join(dir, ".agents", "skills", "ceo", "SKILL.md")
 	body := "---\nname: ceo\ndescription: project ceo\n---\n\nproject"
 	if err := os.WriteFile(overridePath, []byte(body), 0o644); err != nil {
 		t.Fatal(err)
@@ -57,7 +57,7 @@ func TestCustomizeWritesProjectOverride(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(path, ".cleo/skills/ceo/SKILL.md") {
+	if !strings.Contains(path, ".agents/skills/ceo/SKILL.md") {
 		t.Fatalf("unexpected path: %s", path)
 	}
 	body, err := os.ReadFile(path)
@@ -80,10 +80,10 @@ func TestResolveFounderNotFound(t *testing.T) {
 
 func TestCheckRejectsMissingFrontmatter(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(dir, ".cleo", "skills", "bad"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(dir, ".agents", "skills", "bad"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, ".cleo", "skills", "bad", "SKILL.md"), []byte("hello"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".agents", "skills", "bad", "SKILL.md"), []byte("hello"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	r := Resolver{Cwd: dir, Home: filepath.Join(dir, "home")}

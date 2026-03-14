@@ -42,7 +42,7 @@ func TestExecuteCustomizeWritesProjectOverride(t *testing.T) {
 	if err := cmd.Execute("customize", []string{"ceo"}); err != nil {
 		t.Fatalf("customize: %v", err)
 	}
-	path := filepath.Join(dir, ".cleo", "skills", "ceo", "SKILL.md")
+	path := filepath.Join(dir, ".agents", "skills", "ceo", "SKILL.md")
 	if _, err := os.Stat(path); err != nil {
 		t.Fatalf("expected %s: %v", path, err)
 	}

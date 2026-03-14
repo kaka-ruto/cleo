@@ -11,7 +11,7 @@ func PrintSkill(out io.Writer) {
 	fmt.Fprintln(out, "commands:")
 	fmt.Fprintln(out, "  list                             List available skills and their source")
 	fmt.Fprintln(out, "  use <name>                       Print resolved SKILL.md for immediate agent use")
-	fmt.Fprintln(out, "  customize <name>                 Create project override at .cleo/skills/<name>/SKILL.md")
+	fmt.Fprintln(out, "  customize <name>                 Create project override at .agents/skills/<name>/SKILL.md")
 	fmt.Fprintln(out, "  check [name]                     Validate one or all skills")
 	fmt.Fprintln(out, "  help [command]")
 }

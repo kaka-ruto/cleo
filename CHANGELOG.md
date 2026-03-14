@@ -24,6 +24,42 @@ All notable changes to this project will be documented in this file.
 
 - Add verification commands/results for unreleased work.
 
+## [v0.2.6]
+
+### Summary
+
+- Standardized Cleo skill overrides to `.agents/skills` for both project and user scopes.
+
+### Highlights
+
+- Removed `.cleo/skills` lookup and customization paths from the skill resolver.
+- Skill resolution now uses:
+  - `<project>/.agents/skills/<name>/SKILL.md`
+  - `~/.agents/skills/<name>/SKILL.md`
+  - built-in bundled skills
+- Updated `cleo skill customize` target path to `.agents/skills/<name>/SKILL.md`.
+- Updated CLI help, AGENTS guidance, and template docs to use `.agents/skills`.
+- Updated resolver/workflow tests to validate `.agents/skills` behavior.
+
+### Breaking Changes
+
+- Existing project overrides under `.cleo/skills/...` are no longer loaded.
+
+### Migration Notes
+
+- Move any existing overrides from `.cleo/skills/<name>/SKILL.md` to `.agents/skills/<name>/SKILL.md`.
+- Re-run:
+  - `cleo skill list`
+  - `cleo skill use <name>`
+  to validate expected sources.
+
+### Verification
+
+- `go test ./...`
+- `go run ./cmd/cleo help skill`
+- `go run ./cmd/cleo skill list`
+- `go run ./cmd/cleo skill customize ceo`
+
 ## [v0.2.5]
 
 ### Summary
@@ -55,7 +91,7 @@ All notable changes to this project will be documented in this file.
   - `cleo skill use ceo`
 - To share custom skill behavior in a repository:
   - `cleo skill customize ceo`
-  - commit `.cleo/skills/ceo/SKILL.md`
+  - commit `.agents/skills/ceo/SKILL.md`
 
 ### Verification
 

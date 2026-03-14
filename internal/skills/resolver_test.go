@@ -21,7 +21,7 @@ func TestResolveFallsBackToBuiltin(t *testing.T) {
 	if src.Origin != "builtin" {
 		t.Fatalf("expected builtin origin, got %s", src.Origin)
 	}
-	if !strings.Contains(string(body), "name: plan-ceo-review") {
+	if !strings.Contains(string(body), "name: ceo") {
 		t.Fatalf("expected imported ceo skill body")
 	}
 }
@@ -64,7 +64,7 @@ func TestCustomizeWritesProjectOverride(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(body), "name: plan-ceo-review") {
+	if !strings.Contains(string(body), "name: ceo") {
 		t.Fatal("expected imported ceo content")
 	}
 }

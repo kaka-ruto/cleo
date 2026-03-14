@@ -1,5 +1,5 @@
 ---
-name: plan-ceo-review
+name: ceo
 version: 1.0.0
 description: |
   CEO/founder-mode plan review. Rethink the problem, find the 10-star product,

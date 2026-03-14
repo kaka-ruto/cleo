@@ -209,6 +209,8 @@ cleo task work --task <id>
 cleo skill list
 cleo skill use ceo
 cleo skill customize ceo
+cleo skill install ceo --global
+cleo skill sync --project
 cleo skill check
 cleo skill check ceo
 ```

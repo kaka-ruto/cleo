@@ -12,6 +12,8 @@ func PrintSkill(out io.Writer) {
 	fmt.Fprintln(out, "  list                             List available skills and their source")
 	fmt.Fprintln(out, "  use <name>                       Print resolved SKILL.md for immediate agent use")
 	fmt.Fprintln(out, "  customize <name>                 Create project override at .agents/skills/<name>/SKILL.md")
+	fmt.Fprintln(out, "  install <name> [--global|--project]  Install one skill to .agents/skills")
+	fmt.Fprintln(out, "  sync [--global|--project]        Sync bundled skills to .agents/skills")
 	fmt.Fprintln(out, "  check [name]                     Validate one or all skills")
 	fmt.Fprintln(out, "  help [command]")
 }
@@ -24,6 +26,10 @@ func PrintSkillCommand(out io.Writer, cmd string) bool {
 		fmt.Fprintln(out, "usage: cleo skill use <name>")
 	case "customize":
 		fmt.Fprintln(out, "usage: cleo skill customize <name>")
+	case "install":
+		fmt.Fprintln(out, "usage: cleo skill install <name> [--global|--project]")
+	case "sync":
+		fmt.Fprintln(out, "usage: cleo skill sync [--global|--project]")
 	case "check":
 		fmt.Fprintln(out, "usage: cleo skill check [name]")
 	default:

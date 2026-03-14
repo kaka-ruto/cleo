@@ -64,6 +64,7 @@ Guidance for agents working in this repository.
 - If a skill cannot be resolved, report that briefly and continue best-effort.
 - Do not invent skill content; `cleo skill use <x>` output is the source of truth.
 - For project-specific behavior, use `cleo skill customize <x>` and commit `.agents/skills/<x>/SKILL.md` when team sharing is desired.
+- Use `cleo skill install <x> --global` for global skill distribution and `cleo skill sync --project` to materialize bundled skills in a repository.
 
 ## Setup and Update
 

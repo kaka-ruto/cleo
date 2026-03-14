@@ -57,3 +57,31 @@ func TestExecuteUnknownCommand(t *testing.T) {
 		t.Fatalf("expected unknown command error, got %v", err)
 	}
 }
+
+func TestExecuteInstallGlobalWritesSkill(t *testing.T) {
+	var out bytes.Buffer
+	home := t.TempDir()
+	r := skills.Resolver{Cwd: t.TempDir(), Home: home}
+	cmd := newForTest(&out, r)
+	if err := cmd.Execute("install", []string{"ceo", "--global"}); err != nil {
+		t.Fatalf("install: %v", err)
+	}
+	path := filepath.Join(home, ".agents", "skills", "ceo", "SKILL.md")
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("expected %s: %v", path, err)
+	}
+}
+
+func TestExecuteSyncProjectWritesBuiltins(t *testing.T) {
+	var out bytes.Buffer
+	cwd := t.TempDir()
+	r := skills.Resolver{Cwd: cwd, Home: t.TempDir()}
+	cmd := newForTest(&out, r)
+	if err := cmd.Execute("sync", []string{"--project"}); err != nil {
+		t.Fatalf("sync: %v", err)
+	}
+	path := filepath.Join(cwd, ".agents", "skills", "ceo", "SKILL.md")
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("expected %s: %v", path, err)
+	}
+}

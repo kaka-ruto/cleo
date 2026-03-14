@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/cafaye/cleo/internal/skills"
@@ -47,6 +48,10 @@ func (c *Command) Execute(name string, args []string) error {
 			skillName = args[0]
 		}
 		return c.check(skillName)
+	case "install":
+		return c.install(args)
+	case "sync":
+		return c.sync(args)
 	default:
 		return fmt.Errorf("unknown skill command: %s", name)
 	}
@@ -100,4 +105,83 @@ func (c *Command) check(name string) error {
 	}
 	fmt.Fprintf(c.out, "Checked %d skill(s): all valid.\n", len(rows))
 	return nil
+}
+
+func (c *Command) install(args []string) error {
+	if len(args) == 0 {
+		return errors.New("usage: cleo skill install <name> [--global|--project]")
+	}
+	name := args[0]
+	root, err := c.installRoot(args[1:])
+	if err != nil {
+		return err
+	}
+	src, body, err := c.resolver.Resolve(name)
+	if err != nil {
+		return err
+	}
+	target, err := writeSkill(root, src.Name, body)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(c.out, "Installed skill %s to %s\n", src.Name, target)
+	return nil
+}
+
+func (c *Command) sync(args []string) error {
+	root, err := c.installRoot(args)
+	if err != nil {
+		return err
+	}
+	builtins := skills.BuiltinList()
+	if len(builtins) == 0 {
+		fmt.Fprintln(c.out, "No builtin skills to sync.")
+		return nil
+	}
+	count := 0
+	for _, s := range builtins {
+		body, err := skills.ReadBuiltin(s.Name)
+		if err != nil {
+			return err
+		}
+		if _, err := writeSkill(root, s.Name, body); err != nil {
+			return err
+		}
+		count++
+	}
+	fmt.Fprintf(c.out, "Synced %d skill(s) to %s\n", count, root)
+	return nil
+}
+
+func (c *Command) installRoot(flags []string) (string, error) {
+	project := false
+	global := false
+	for _, f := range flags {
+		switch f {
+		case "--project":
+			project = true
+		case "--global":
+			global = true
+		default:
+			return "", fmt.Errorf("unknown flag: %s", f)
+		}
+	}
+	if project && global {
+		return "", errors.New("choose only one target: --global or --project")
+	}
+	if project {
+		return filepath.Join(c.resolver.Cwd, ".agents", "skills"), nil
+	}
+	return filepath.Join(c.resolver.Home, ".agents", "skills"), nil
+}
+
+func writeSkill(root string, name string, body []byte) (string, error) {
+	target := filepath.Join(root, name, "SKILL.md")
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		return "", fmt.Errorf("create skill directory: %w", err)
+	}
+	if err := os.WriteFile(target, body, 0o644); err != nil {
+		return "", fmt.Errorf("write skill: %w", err)
+	}
+	return target, nil
 }

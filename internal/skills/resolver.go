@@ -188,6 +188,22 @@ func builtinSources() []Source {
 	return out
 }
 
+func BuiltinList() []Source {
+	return builtinSources()
+}
+
+func ReadBuiltin(name string) ([]byte, error) {
+	name = strings.TrimSpace(strings.ToLower(name))
+	if name == "" {
+		return nil, errors.New("skill name is required")
+	}
+	body, err := builtinFS.ReadFile(filepath.ToSlash(filepath.Join("builtin", name, "SKILL.md")))
+	if err != nil {
+		return nil, fmt.Errorf("builtin skill not found: %s", name)
+	}
+	return body, nil
+}
+
 func originForPath(r Resolver, path string) string {
 	norm := filepath.Clean(path)
 	if strings.HasPrefix(norm, filepath.Join(r.Cwd, ".agents", "skills")) {

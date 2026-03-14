@@ -49,6 +49,7 @@
 - Do not invent skill content; `cleo skill use <x>` output is the source of truth.
 - If users want project-specific behavior, suggest `cleo skill customize <x>` and then use the customized skill.
 - `cleo skill customize <x>` writes project skill overrides to `.agents/skills/<x>/SKILL.md`.
+- Use `cleo skill install <x> --global` for global installation and `cleo skill sync --project` to write bundled skills into a repo.
 
 ## Setup and Update
 

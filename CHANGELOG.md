@@ -24,6 +24,33 @@ All notable changes to this project will be documented in this file.
 
 - Add verification commands/results for unreleased work.
 
+## [v0.2.9]
+
+### Summary
+
+- Added a first-class builtin `cleo` skill and switched onboarding to a skill-first model with automatic installation.
+
+### Highlights
+
+- Added bundled `cleo` skill guidance at `internal/skills/builtin/cleo/SKILL.md`.
+- Updated setup/update post-migrations to ensure `.agents/skills/cleo/SKILL.md` exists.
+- Preserved user customization by leaving existing `.agents/skills/cleo/SKILL.md` files unchanged.
+- Added tests for migration behavior and skill command coverage for the new builtin skill.
+- Updated README and `docs/YOUR_AGENTS.md` to remove copy-paste-heavy agent setup guidance.
+
+### Breaking Changes
+
+- None.
+
+### Migration Notes
+
+- Run `cleo setup` (or `cleo update`) in each repository to auto-install the builtin `cleo` skill.
+- Existing custom project skill overrides at `.agents/skills/cleo/SKILL.md` are preserved.
+
+### Verification
+
+- `go test ./...`
+
 ## [v0.2.8]
 
 ### Summary

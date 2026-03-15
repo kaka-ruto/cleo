@@ -34,6 +34,18 @@ func TestExecuteUsePrintsSkill(t *testing.T) {
 	}
 }
 
+func TestExecuteUsePrintsCleoSkill(t *testing.T) {
+	var out bytes.Buffer
+	r := skills.Resolver{Cwd: t.TempDir(), Home: t.TempDir()}
+	cmd := newForTest(&out, r)
+	if err := cmd.Execute("use", []string{"cleo"}); err != nil {
+		t.Fatalf("use: %v", err)
+	}
+	if !strings.Contains(out.String(), "# Cleo Workflow Skill") {
+		t.Fatalf("expected imported cleo skill body, got: %s", out.String())
+	}
+}
+
 func TestExecuteCustomizeWritesProjectOverride(t *testing.T) {
 	dir := t.TempDir()
 	var out bytes.Buffer
@@ -83,5 +95,9 @@ func TestExecuteSyncProjectWritesBuiltins(t *testing.T) {
 	path := filepath.Join(cwd, ".agents", "skills", "ceo", "SKILL.md")
 	if _, err := os.Stat(path); err != nil {
 		t.Fatalf("expected %s: %v", path, err)
+	}
+	cleoPath := filepath.Join(cwd, ".agents", "skills", "cleo", "SKILL.md")
+	if _, err := os.Stat(cleoPath); err != nil {
+		t.Fatalf("expected %s: %v", cleoPath, err)
 	}
 }

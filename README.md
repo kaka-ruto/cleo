@@ -89,9 +89,13 @@ cleo skill help
 
 ## Agent Setup
 
-Add workflow preferences to your project `AGENTS.md` so agents default to `cleo` commands.
+`cleo setup` and `cleo update` now auto-install the builtin `cleo` skill at:
 
-Use this copy-ready template:
+- `.agents/skills/cleo/SKILL.md`
+
+This removes the need for large copy/paste `AGENTS.md` templates.
+
+If your agent runtime still requires `AGENTS.md` to load defaults, use the minimal bootstrap:
 
 - [YOUR_AGENTS.md](/Users/kaka/Code/Cafaye/cleo/docs/YOUR_AGENTS.md)
 
@@ -207,11 +211,15 @@ cleo task work --task <id>
 
 ```bash
 cleo skill list
+cleo skill use cleo
 cleo skill use ceo
+cleo skill customize cleo
 cleo skill customize ceo
+cleo skill install cleo --global
 cleo skill install ceo --global
 cleo skill sync --project
 cleo skill check
+cleo skill check cleo
 cleo skill check ceo
 ```
 

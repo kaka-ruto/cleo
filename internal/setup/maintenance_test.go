@@ -1,59 +1,31 @@
 package setup
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
-func TestEnsureConfigDefaultsAddsMissingQAKeys(t *testing.T) {
+func TestApplyPostUpdateMigrationsEnsuresQAKitWithoutConfig(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "cleo.yml")
-	body := "version: 1\ngithub:\n  owner: cafaye\n  repo: cleo\n"
-	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
-		t.Fatal(err)
+	t.Chdir(dir)
+
+	if err := ApplyPostUpdateMigrations(nil); err != nil {
+		t.Fatalf("ApplyPostUpdateMigrations() error = %v", err)
 	}
-	changed, err := ensureConfigDefaults(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !changed {
-		t.Fatal("expected config migration to change file")
-	}
-	out, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	text := string(out)
-	for _, needle := range []string{"actors_dir: .cleo/qa/actors", "evidence_dir: .cleo/evidence", "enabled: true"} {
-		if !strings.Contains(text, needle) {
-			t.Fatalf("expected migrated config to contain %q", needle)
+
+	for _, p := range []string{
+		filepath.Join(dir, ".github", "workflows", "qa.yml"),
+		filepath.Join(dir, ".github", "pull_request_template.md"),
+		filepath.Join(dir, ".cleo", "qa", "actors", "core.yml"),
+	} {
+		if _, err := os.Stat(p); err != nil {
+			t.Fatalf("expected %s to exist: %v", p, err)
 		}
 	}
-}
 
-func TestEnsureConfigDefaultsNoChangeWhenPresent(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "cleo.yml")
-	body := `version: 1
-github:
-  owner: cafaye
-  repo: cleo
-qa:
-  actors_dir: .cleo/qa/actors
-  evidence_dir: .cleo/evidence
-  manual:
-    enabled: true
-`
-	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	changed, err := ensureConfigDefaults(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if changed {
-		t.Fatal("expected no config migration changes")
+	if _, err := os.Stat(filepath.Join(dir, "cleo.yml")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected no cleo.yml file to be created, got err=%v", err)
 	}
 }

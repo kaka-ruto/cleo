@@ -1,11 +1,10 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
-	"os"
-
-	"gopkg.in/yaml.v3"
+	"net/url"
+	"os/exec"
+	"strings"
 )
 
 type Config struct {
@@ -77,22 +76,111 @@ type Config struct {
 	} `yaml:"qa"`
 }
 
-func Load(path string) (*Config, error) {
-	body, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read %s: %w", path, err)
-	}
+func LoadProject() (*Config, error) {
 	cfg := &Config{}
-	dec := yaml.NewDecoder(bytes.NewReader(body))
-	dec.KnownFields(true)
-	if err := dec.Decode(cfg); err != nil {
-		return nil, fmt.Errorf("parse %s: %w", path, err)
-	}
+	cfg.inferFromGit()
 	cfg.applyDefaults()
 	if err := cfg.validate(); err != nil {
 		return nil, err
 	}
 	return cfg, nil
+}
+
+func (c *Config) inferFromGit() {
+	host, owner, repo, err := discoverRepoFromGitRemote()
+	if err == nil {
+		if c.GitHub.Host == "" {
+			c.GitHub.Host = host
+		}
+		if c.GitHub.Owner == "" {
+			c.GitHub.Owner = owner
+		}
+		if c.GitHub.Repo == "" {
+			c.GitHub.Repo = repo
+		}
+	}
+	if c.GitHub.BaseBranch == "" {
+		if branch, branchErr := discoverBaseBranchFromGit(); branchErr == nil {
+			c.GitHub.BaseBranch = branch
+		}
+	}
+}
+
+func discoverRepoFromGitRemote() (host, owner, repo string, err error) {
+	out, err := exec.Command("git", "config", "--get", "remote.origin.url").CombinedOutput()
+	if err != nil {
+		return "", "", "", err
+	}
+	return parseRepoFromRemoteURL(strings.TrimSpace(string(out)))
+}
+
+func parseRepoFromRemoteURL(raw string) (host, owner, repo string, err error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", "", "", fmt.Errorf("empty git remote origin url")
+	}
+	pathPart := ""
+	if strings.Contains(raw, "://") {
+		u, parseErr := url.Parse(raw)
+		if parseErr != nil {
+			return "", "", "", parseErr
+		}
+		host = strings.TrimSpace(u.Hostname())
+		pathPart = strings.TrimPrefix(u.Path, "/")
+	} else {
+		withoutUser := raw
+		if at := strings.Index(withoutUser, "@"); at >= 0 {
+			withoutUser = withoutUser[at+1:]
+		}
+		split := strings.SplitN(withoutUser, ":", 2)
+		if len(split) != 2 {
+			return "", "", "", fmt.Errorf("invalid git remote origin url: %s", raw)
+		}
+		host = strings.TrimSpace(split[0])
+		pathPart = strings.TrimPrefix(split[1], "/")
+	}
+	pathPart = strings.TrimSuffix(pathPart, ".git")
+	segments := strings.Split(pathPart, "/")
+	if len(segments) < 2 {
+		return "", "", "", fmt.Errorf("invalid git remote origin url: %s", raw)
+	}
+	owner = strings.TrimSpace(segments[len(segments)-2])
+	repo = strings.TrimSpace(segments[len(segments)-1])
+	if host == "" || owner == "" || repo == "" {
+		return "", "", "", fmt.Errorf("invalid git remote origin url: %s", raw)
+	}
+	return host, owner, repo, nil
+}
+
+func discoverBaseBranchFromGit() (string, error) {
+	out, err := exec.Command("git", "symbolic-ref", "--short", "refs/remotes/origin/HEAD").CombinedOutput()
+	if err == nil {
+		branch := parseBaseBranch(strings.TrimSpace(string(out)))
+		if branch != "" {
+			return branch, nil
+		}
+	}
+	remoteShow, showErr := exec.Command("git", "remote", "show", "origin").CombinedOutput()
+	if showErr != nil {
+		return "", showErr
+	}
+	for _, line := range strings.Split(string(remoteShow), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "HEAD branch:") {
+			branch := strings.TrimSpace(strings.TrimPrefix(line, "HEAD branch:"))
+			if branch != "" && branch != "(unknown)" {
+				return branch, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("base branch not detected from git")
+}
+
+func parseBaseBranch(ref string) string {
+	ref = strings.TrimSpace(ref)
+	ref = strings.TrimPrefix(ref, "refs/remotes/origin/")
+	ref = strings.TrimPrefix(ref, "origin/")
+	return strings.TrimSpace(ref)
 }
 
 func (c *Config) applyDefaults() {
@@ -108,6 +196,12 @@ func (c *Config) applyDefaults() {
 	if c.GitHub.MergeMethod == "" {
 		c.GitHub.MergeMethod = "merge"
 	}
+	if c.PR.RequiredApprovals == 0 {
+		c.PR.RequiredApprovals = 1
+	}
+	c.PR.RequireNonDraft = true
+	c.PR.RequireMergeable = true
+	c.PR.BlockRequestedChanges = true
 	if c.PR.Checks.Mode == "" {
 		c.PR.Checks.Mode = "required"
 	}
@@ -120,6 +214,7 @@ func (c *Config) applyDefaults() {
 	if c.PR.DeployWatch.Workflow == "" {
 		c.PR.DeployWatch.Workflow = "Deploy to Production"
 	}
+	c.PR.DeployWatch.Enabled = true
 	if c.PR.DeployWatch.Branch == "" {
 		c.PR.DeployWatch.Branch = c.GitHub.BaseBranch
 	}
@@ -135,9 +230,18 @@ func (c *Config) applyDefaults() {
 	if c.PR.PostMerge.Markers.End == "" {
 		c.PR.PostMerge.Markers.End = "<!-- post-merge-commands:end -->"
 	}
+	c.PR.PostMerge.Enabled = true
+	c.PR.PostMerge.AllowNone = true
 	if len(c.PR.PostMerge.CommandAllowlistPrefixes) == 0 {
 		c.PR.PostMerge.CommandAllowlistPrefixes = []string{"bin/kamal"}
 	}
+	if len(c.PR.PostMerge.CommandDenylist) == 0 {
+		c.PR.PostMerge.CommandDenylist = []string{"rm -rf /"}
+	}
+	c.PR.Stack.RebaseNextAfterMerge = true
+	c.PR.Stack.AutoDetectNextPR = true
+	c.PR.Stack.ForceWithLease = true
+	c.Safety.RequireExplicitApply = true
 	if c.Release.TagPrefix == "" {
 		c.Release.TagPrefix = "v"
 	}
@@ -150,11 +254,15 @@ func (c *Config) applyDefaults() {
 	if c.Release.BuildTarget == "" {
 		c.Release.BuildTarget = "./cmd/cleo"
 	}
+	c.Release.GenerateNotes = true
 	if c.QA.ActorsDir == "" {
 		c.QA.ActorsDir = ".cleo/qa/actors"
 	}
 	if c.QA.EvidenceDir == "" {
 		c.QA.EvidenceDir = ".cleo/evidence"
+	}
+	if len(c.QA.DefaultActors) == 0 {
+		c.QA.DefaultActors = []string{"core"}
 	}
 }
 
@@ -174,7 +282,7 @@ func (c *Config) validate() error {
 		return fmt.Errorf("version must be 1")
 	}
 	if c.GitHub.Owner == "" || c.GitHub.Repo == "" {
-		return fmt.Errorf("github.owner and github.repo are required")
+		return fmt.Errorf("github.owner and github.repo are required (configure git remote.origin.url)")
 	}
 	switch c.GitHub.MergeMethod {
 	case "merge", "squash", "rebase":

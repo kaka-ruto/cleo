@@ -1,22 +1,36 @@
 package setup
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
-func TestDefaultConfigIncludesOwnerAndRepo(t *testing.T) {
-	cfg := defaultConfig("cafaye", "cleo")
-	if !strings.Contains(cfg, "owner: cafaye") {
-		t.Fatal("owner missing")
+func TestWriteConfigStatesNoConfigFile(t *testing.T) {
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
 	}
-	if !strings.Contains(cfg, "repo: cleo") {
-		t.Fatal("repo missing")
+	defer func() { _ = r.Close() }()
+
+	wizard := &Wizard{Stdout: w}
+	if err := wizard.writeConfig(); err != nil {
+		t.Fatal(err)
 	}
-	if !strings.Contains(cfg, "block_if_requested_changes") {
-		t.Fatal("expected PR policy key")
+	_ = w.Close()
+
+	out, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(out)
+	if !strings.Contains(text, "No cleo.yml file is used.") {
+		t.Fatalf("expected no-config message, got %q", text)
+	}
+	if !strings.Contains(text, "infers repo context from git") {
+		t.Fatalf("expected git inference message, got %q", text)
 	}
 }
 

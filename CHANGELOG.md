@@ -24,6 +24,46 @@ All notable changes to this project will be documented in this file.
 
 - Add verification commands/results for unreleased work.
 
+## [v0.2.8]
+
+### Summary
+
+- Removed `cleo.yml` entirely; Cleo now infers repository context from git and runs with built-in policy defaults.
+
+### Highlights
+
+- Deleted repo `cleo.yml` and removed runtime file-based config loading.
+- `LoadProject` now resolves config from:
+  - git remote (`remote.origin.url`) for host/owner/repo
+  - git origin HEAD/default branch for base branch
+  - built-in defaults for policy values
+- Updated setup/update flows to stop creating or migrating `cleo.yml`.
+- Updated docs and agent guidance to reflect no config-file workflow.
+- Added/updated tests for:
+  - git-only config inference
+  - failure mode when git remote is missing
+  - setup/update behavior with no `cleo.yml`
+
+### Breaking Changes
+
+- `cleo.yml` is no longer supported or read by Cleo.
+
+### Migration Notes
+
+- Remove existing `cleo.yml`; it is no longer used.
+- Ensure repository has a valid origin remote:
+  - `git remote add origin git@github.com:<owner>/<repo>.git`
+- Ensure origin default branch is discoverable when needed:
+  - `git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/<branch>`
+
+### Verification
+
+- `go test ./...`
+- `go run ./cmd/cleo task list`
+- `go run ./cmd/cleo release latest`
+- `go run ./cmd/cleo qa init`
+- `go run ./cmd/cleo setup --non-interactive`
+
 ## [v0.2.7]
 
 ### Summary

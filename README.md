@@ -124,7 +124,7 @@ NON_INTERACTIVE=1 SCAN_ROOTS="$HOME/Code,$HOME/work" curl -fsSL https://raw.gith
 ```
 
 - `NON_INTERACTIVE=1`: auto-confirms prompts.
-- `SCAN_ROOTS`: comma-separated directories scanned for `cleo.yml` cleanup.
+- `SCAN_ROOTS`: comma-separated directories scanned for legacy `cleo.yml` cleanup.
 
 ## Setup Wizard
 
@@ -135,7 +135,7 @@ cleo setup
 cleo setup --non-interactive
 ```
 
-`cleo setup` keeps existing `cleo.yml` and applies only safe additive migrations (missing defaults + QA kit assets).
+`cleo setup` does not create or read `cleo.yml`; it infers repo context from git and applies safe additive QA kit assets.
 
 ## Build
 
@@ -264,11 +264,11 @@ For Ruby gem repositories (`*.gemspec` present), `publish` automatically:
 - writes `checksums.txt`
 - uploads the `.gem` and checksum file to the GitHub release
 
-For reuse in other projects, configure release packaging in `cleo.yml`:
+Release packaging currently uses built-in defaults:
 
-- `release.binary_name` (artifact/binary name)
-- `release.build_target` (Go build target path, for example `./cmd/mycli`)
-- `release.changelog_file` (notes source path)
+- `binary_name`: `cleo`
+- `build_target`: `./cmd/cleo`
+- `changelog_file`: `CHANGELOG.md`
 
 ## Tests
 

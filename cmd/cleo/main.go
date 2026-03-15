@@ -119,7 +119,7 @@ func run(args []string) int {
 		}
 		return 0
 	}
-	cfg, err := config.Load("cleo.yml")
+	cfg, err := loadProjectConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
 		return 1
@@ -207,7 +207,7 @@ func runRelease(args []string) int {
 		}
 		return 0
 	}
-	cfg, err := config.Load("cleo.yml")
+	cfg, err := loadProjectConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
 		return 1
@@ -232,7 +232,7 @@ func runReleaseGo(args []string) int {
 		help.PrintReleaseGo(os.Stdout)
 		return 0
 	}
-	cfg, err := config.Load("cleo.yml")
+	cfg, err := loadProjectConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
 		return 1
@@ -264,7 +264,7 @@ func runQA(args []string) int {
 		}
 		return 0
 	}
-	cfg, err := config.Load("cleo.yml")
+	cfg, err := loadProjectConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
 		return 1
@@ -304,7 +304,7 @@ func runTask(args []string) int {
 		}
 		return 0
 	}
-	cfg, err := config.Load("cleo.yml")
+	cfg, err := loadProjectConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
 		return 1
@@ -326,4 +326,8 @@ func runTask(args []string) int {
 		return 1
 	}
 	return 0
+}
+
+func loadProjectConfig() (*config.Config, error) {
+	return config.LoadProject()
 }

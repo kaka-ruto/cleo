@@ -188,7 +188,7 @@ func (a *Adapter) Run(sessionID int64, mode string) (string, error) {
 		return "", fmt.Errorf("--mode must be auto|manual|pr")
 	}
 	if resolvedMode == "manual" && !a.cfg.QAManualEnabled() {
-		return "", fmt.Errorf("manual QA mode is disabled in cleo.yml (qa.manual.enabled=false)")
+		return "", fmt.Errorf("manual QA mode is disabled by policy (qa.manual.enabled=false)")
 	}
 	var lines []string
 	lines = append(lines, fmt.Sprintf("QA AC guidance for session %d", sessionID))

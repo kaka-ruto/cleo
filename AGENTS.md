@@ -72,7 +72,7 @@ Guidance for agents working in this repository.
 ## Setup and Update
 
 - `cleo update` should only apply safe additive migrations (no destructive config overwrites).
-- `cleo setup` should preserve existing `cleo.yml` and apply safe additive defaults/assets.
+- `cleo setup` should not create or depend on `cleo.yml`; rely on git inference and safe additive assets.
 
 ## Local Commands
 
@@ -126,8 +126,7 @@ Guidance for agents working in this repository.
 
 ## Configuration
 
-- `cleo.yml` at repo root is required for command execution.
-- Use strict YAML parsing (`KnownFields`).
+- `cleo` does not use `cleo.yml`; infer repo context from git remote metadata.
 - Add safe defaults for common teams.
 - Avoid framework-specific assumptions.
 

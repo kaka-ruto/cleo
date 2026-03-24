@@ -6,6 +6,28 @@ All notable changes to this project will be documented in this file.
 
 ### Summary
 
+- Document upcoming changes here before the next release.
+
+### Highlights
+
+- Add highlights for unreleased work.
+
+### Breaking Changes
+
+- None.
+
+### Migration Notes
+
+- None.
+
+### Verification
+
+- Add verification commands/results for unreleased work.
+
+## [v0.2.10]
+
+### Summary
+
 - Added remote skill registry support with install/discovery workflows and custom registry management.
 
 ### Highlights
@@ -34,7 +56,9 @@ All notable changes to this project will be documented in this file.
 
 ### Migration Notes
 
-- None.
+- No migration required.
+- Teams can add private/team registries via:
+  - `cleo skill registry add <name> --repo <owner/repo> --path <path> [--ref <ref>]`
 
 ### Verification
 

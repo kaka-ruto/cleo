@@ -28,27 +28,27 @@ All notable changes to this project will be documented in this file.
 
 ### Summary
 
-- Added remote skill registry support with install/discovery workflows and custom registry management.
+- Cleo can now discover, install, and uninstall skills directly from remote registries, including OpenAI curated skills and community skill packs.
 
 ### Highlights
 
-- Added built-in remote registries:
-  - `openai` (`openai/skills`, `skills/.curated`)
-  - `superpowers` (`obra/superpowers`, `skills`)
-  - `superpowers-ruby` (`lucianghinda/superpowers-ruby`, `skills`)
-- Added `cleo skill registry` subcommands:
-  - `registry list`
-  - `registry skills <registry> [--search <term>]`
-  - `registry add <name> --repo <owner/repo> --path <path> [--ref <ref>] [--description <text>]`
-  - `registry remove <name>`
-- Added remote install path:
+- New built-in registries available out of the box:
+  - `openai` (`openai/skills`, path `skills/.curated`)
+  - `superpowers` (`obra/superpowers`, path `skills`)
+  - `superpowers-ruby` (`lucianghinda/superpowers-ruby`, path `skills`)
+- New discovery commands:
+  - `cleo skill registry list`
+  - `cleo skill registry skills <registry> [--search <term>]`
+- New remote installation command:
   - `cleo skill install <name> --registry <registry> [--global|--project] [--force]`
-- Added uninstall workflow:
+- New removal command:
   - `cleo skill uninstall <name> [--global|--project]`
-- Added persistent custom registry storage at:
-  - `~/.agents/skills/registries.yml`
-- Preserved existing customization workflow for installed skills via:
-  - `cleo skill customize <name>`
+- New custom registry management:
+  - `cleo skill registry add <name> --repo <owner/repo> --path <path> [--ref <ref>] [--description <text>]`
+  - `cleo skill registry remove <name>`
+- Custom registries persist in user scope at `~/.agents/skills/registries.yml`.
+- Existing customization behavior remains:
+  - `cleo skill customize <name>` still creates/uses project-local overrides in `.agents/skills/<name>/SKILL.md`.
 
 ### Breaking Changes
 
@@ -57,8 +57,12 @@ All notable changes to this project will be documented in this file.
 ### Migration Notes
 
 - No migration required.
-- Teams can add private/team registries via:
-  - `cleo skill registry add <name> --repo <owner/repo> --path <path> [--ref <ref>]`
+- Recommended upgrade path:
+  - Use built-ins immediately: `cleo skill registry list`
+  - Add team registries for internal skills:
+    - `cleo skill registry add <name> --repo <owner/repo> --path <path> [--ref <ref>]`
+  - Install to project scope when sharing with a team:
+    - `cleo skill install <skill> --registry <name> --project`
 
 ### Verification
 

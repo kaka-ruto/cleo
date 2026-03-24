@@ -101,3 +101,61 @@ func TestExecuteSyncProjectWritesBuiltins(t *testing.T) {
 		t.Fatalf("expected %s: %v", cleoPath, err)
 	}
 }
+
+func TestExecuteUninstallGlobalRemovesSkill(t *testing.T) {
+	var out bytes.Buffer
+	home := t.TempDir()
+	r := skills.Resolver{Cwd: t.TempDir(), Home: home}
+	cmd := newForTest(&out, r)
+	if err := cmd.Execute("install", []string{"ceo", "--global"}); err != nil {
+		t.Fatalf("install: %v", err)
+	}
+	if err := cmd.Execute("uninstall", []string{"ceo", "--global"}); err != nil {
+		t.Fatalf("uninstall: %v", err)
+	}
+	path := filepath.Join(home, ".agents", "skills", "ceo")
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		t.Fatalf("expected uninstall of %s", path)
+	}
+}
+
+func TestExecuteRegistryList(t *testing.T) {
+	var out bytes.Buffer
+	r := skills.Resolver{Cwd: t.TempDir(), Home: t.TempDir()}
+	cmd := newForTest(&out, r)
+	if err := cmd.Execute("registry", []string{"list"}); err != nil {
+		t.Fatalf("registry list: %v", err)
+	}
+	got := out.String()
+	if !strings.Contains(got, "openai") || !strings.Contains(got, "superpowers") || !strings.Contains(got, "superpowers-ruby") {
+		t.Fatalf("missing expected registries: %s", got)
+	}
+}
+
+func TestExecuteRegistryAddAndRemove(t *testing.T) {
+	var out bytes.Buffer
+	home := t.TempDir()
+	r := skills.Resolver{Cwd: t.TempDir(), Home: home}
+	cmd := newForTest(&out, r)
+	if err := cmd.Execute("registry", []string{"add", "team", "--repo", "acme/skills", "--path", "skills"}); err != nil {
+		t.Fatalf("registry add: %v", err)
+	}
+	out.Reset()
+	if err := cmd.Execute("registry", []string{"list"}); err != nil {
+		t.Fatalf("registry list: %v", err)
+	}
+	if !strings.Contains(out.String(), "team") {
+		t.Fatalf("expected custom registry in list, got: %s", out.String())
+	}
+	out.Reset()
+	if err := cmd.Execute("registry", []string{"remove", "team"}); err != nil {
+		t.Fatalf("registry remove: %v", err)
+	}
+	out.Reset()
+	if err := cmd.Execute("registry", []string{"list"}); err != nil {
+		t.Fatalf("registry list after remove: %v", err)
+	}
+	if strings.Contains(out.String(), "team") {
+		t.Fatalf("expected custom registry removed, got: %s", out.String())
+	}
+}

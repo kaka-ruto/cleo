@@ -6,11 +6,27 @@ All notable changes to this project will be documented in this file.
 
 ### Summary
 
-- Document upcoming changes here before the next release.
+- Added remote skill registry support with install/discovery workflows and custom registry management.
 
 ### Highlights
 
-- Add highlights for unreleased work.
+- Added built-in remote registries:
+  - `openai` (`openai/skills`, `skills/.curated`)
+  - `superpowers` (`obra/superpowers`, `skills`)
+  - `superpowers-ruby` (`lucianghinda/superpowers-ruby`, `skills`)
+- Added `cleo skill registry` subcommands:
+  - `registry list`
+  - `registry skills <registry> [--search <term>]`
+  - `registry add <name> --repo <owner/repo> --path <path> [--ref <ref>] [--description <text>]`
+  - `registry remove <name>`
+- Added remote install path:
+  - `cleo skill install <name> --registry <registry> [--global|--project] [--force]`
+- Added uninstall workflow:
+  - `cleo skill uninstall <name> [--global|--project]`
+- Added persistent custom registry storage at:
+  - `~/.agents/skills/registries.yml`
+- Preserved existing customization workflow for installed skills via:
+  - `cleo skill customize <name>`
 
 ### Breaking Changes
 
@@ -22,7 +38,11 @@ All notable changes to this project will be documented in this file.
 
 ### Verification
 
-- Add verification commands/results for unreleased work.
+- `go test ./...`
+- `go run ./cmd/cleo skill registry list`
+- `go run ./cmd/cleo skill registry skills openai --search frontend`
+- `go run ./cmd/cleo skill install frontend-skill --registry openai --project`
+- `go run ./cmd/cleo skill uninstall frontend-skill --project`
 
 ## [v0.2.9]
 

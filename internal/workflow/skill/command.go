@@ -6,14 +6,17 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/cafaye/cleo/internal/skills"
+	"github.com/cafaye/cleo/internal/skills/registry"
 )
 
 type Command struct {
 	out      io.Writer
 	resolver skills.Resolver
+	registry registry.Client
 }
 
 func New() (*Command, error) {
@@ -21,11 +24,15 @@ func New() (*Command, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Command{out: os.Stdout, resolver: resolver}, nil
+	return &Command{out: os.Stdout, resolver: resolver, registry: registry.NewClient()}, nil
 }
 
 func newForTest(out io.Writer, resolver skills.Resolver) *Command {
-	return &Command{out: out, resolver: resolver}
+	return &Command{out: out, resolver: resolver, registry: registry.NewClient()}
+}
+
+func newForTestWithRegistry(out io.Writer, resolver skills.Resolver, rc registry.Client) *Command {
+	return &Command{out: out, resolver: resolver, registry: rc}
 }
 
 func (c *Command) Execute(name string, args []string) error {
@@ -50,6 +57,10 @@ func (c *Command) Execute(name string, args []string) error {
 		return c.check(skillName)
 	case "install":
 		return c.install(args)
+	case "uninstall":
+		return c.uninstall(args)
+	case "registry":
+		return c.registryCmd(args)
 	case "sync":
 		return c.sync(args)
 	default:
@@ -109,12 +120,31 @@ func (c *Command) check(name string) error {
 
 func (c *Command) install(args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: cleo skill install <name> [--global|--project]")
+		return errors.New("usage: cleo skill install <name> [--global|--project] [--registry <name>] [--force]")
 	}
 	name := args[0]
 	root, err := c.installRoot(args[1:])
 	if err != nil {
 		return err
+	}
+	opts, err := parseInstallOptions(args[1:])
+	if err != nil {
+		return err
+	}
+	if opts.Registry != "" {
+		def, ok, err := registry.ResolveDefinition(c.resolver.Home, opts.Registry)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("unknown registry: %s", opts.Registry)
+		}
+		target, err := c.registry.InstallSkill(def, name, root, opts.Force)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(c.out, "Installed skill %s from registry %s to %s\n", strings.ToLower(name), def.Name, target)
+		return nil
 	}
 	src, body, err := c.resolver.Resolve(name)
 	if err != nil {
@@ -125,6 +155,141 @@ func (c *Command) install(args []string) error {
 		return err
 	}
 	fmt.Fprintf(c.out, "Installed skill %s to %s\n", src.Name, target)
+	return nil
+}
+
+func (c *Command) uninstall(args []string) error {
+	if len(args) == 0 {
+		return errors.New("usage: cleo skill uninstall <name> [--global|--project]")
+	}
+	root, err := c.installRoot(args[1:])
+	if err != nil {
+		return err
+	}
+	name := strings.TrimSpace(strings.ToLower(args[0]))
+	if name == "" {
+		return errors.New("skill name is required")
+	}
+	target := filepath.Join(root, name)
+	if _, err := os.Stat(target); os.IsNotExist(err) {
+		return fmt.Errorf("skill not installed: %s", name)
+	}
+	if err := os.RemoveAll(target); err != nil {
+		return fmt.Errorf("remove skill: %w", err)
+	}
+	fmt.Fprintf(c.out, "Uninstalled skill %s from %s\n", name, target)
+	return nil
+}
+
+func (c *Command) registryCmd(args []string) error {
+	if len(args) == 0 || args[0] == "list" {
+		rows, err := registry.AllDefinitions(c.resolver.Home)
+		if err != nil {
+			return err
+		}
+		for _, r := range rows {
+			fmt.Fprintf(c.out, "%s\t%s\t%s@%s:%s\n", r.Name, r.Description, r.Repo, r.Ref, r.Path)
+		}
+		return nil
+	}
+	if args[0] == "add" {
+		return c.registryAdd(args[1:])
+	}
+	if args[0] == "remove" {
+		return c.registryRemove(args[1:])
+	}
+	if args[0] != "skills" {
+		return fmt.Errorf("unknown registry command: %s", args[0])
+	}
+	if len(args) < 2 {
+		return errors.New("usage: cleo skill registry skills <registry> [--search <term>]")
+	}
+	def, ok, err := registry.ResolveDefinition(c.resolver.Home, args[1])
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("unknown registry: %s", args[1])
+	}
+	search := ""
+	if len(args) > 2 {
+		if len(args) != 4 || args[2] != "--search" {
+			return errors.New("usage: cleo skill registry skills <registry> [--search <term>]")
+		}
+		search = strings.TrimSpace(strings.ToLower(args[3]))
+	}
+	skills, err := c.registry.ListSkills(def)
+	if err != nil {
+		return err
+	}
+	names := make([]string, 0, len(skills))
+	for _, s := range skills {
+		if search != "" && !strings.Contains(s.Name, search) {
+			continue
+		}
+		names = append(names, s.Name)
+	}
+	sort.Strings(names)
+	for _, n := range names {
+		fmt.Fprintln(c.out, n)
+	}
+	return nil
+}
+
+func (c *Command) registryAdd(args []string) error {
+	if len(args) == 0 {
+		return errors.New("usage: cleo skill registry add <name> --repo <owner/repo> --path <path> [--ref <ref>] [--description <text>]")
+	}
+	d := registry.Definition{Name: args[0]}
+	for i := 1; i < len(args); i++ {
+		switch args[i] {
+		case "--repo":
+			if i+1 >= len(args) {
+				return errors.New("--repo requires a value")
+			}
+			d.Repo = args[i+1]
+			i++
+		case "--path":
+			if i+1 >= len(args) {
+				return errors.New("--path requires a value")
+			}
+			d.Path = args[i+1]
+			i++
+		case "--ref":
+			if i+1 >= len(args) {
+				return errors.New("--ref requires a value")
+			}
+			d.Ref = args[i+1]
+			i++
+		case "--description":
+			if i+1 >= len(args) {
+				return errors.New("--description requires a value")
+			}
+			d.Description = args[i+1]
+			i++
+		default:
+			return fmt.Errorf("unknown flag: %s", args[i])
+		}
+	}
+	if err := registry.UpsertCustom(c.resolver.Home, d); err != nil {
+		return err
+	}
+	fmt.Fprintf(c.out, "Saved registry %s (%s@%s:%s)\n", strings.ToLower(strings.TrimSpace(d.Name)), strings.TrimSpace(d.Repo), strings.TrimSpace(d.Ref), strings.TrimSpace(d.Path))
+	return nil
+}
+
+func (c *Command) registryRemove(args []string) error {
+	if len(args) == 0 {
+		return errors.New("usage: cleo skill registry remove <name>")
+	}
+	removed, err := registry.RemoveCustom(c.resolver.Home, args[0])
+	if err != nil {
+		return err
+	}
+	if !removed {
+		return fmt.Errorf("registry not found: %s", args[0])
+	}
+	fmt.Fprintf(c.out, "Removed registry %s\n", strings.ToLower(strings.TrimSpace(args[0])))
 	return nil
 }
 
@@ -156,13 +321,23 @@ func (c *Command) sync(args []string) error {
 func (c *Command) installRoot(flags []string) (string, error) {
 	project := false
 	global := false
-	for _, f := range flags {
+	for i := 0; i < len(flags); i++ {
+		f := flags[i]
 		switch f {
 		case "--project":
 			project = true
 		case "--global":
 			global = true
+		case "--force":
+		case "--registry":
+			if i+1 >= len(flags) {
+				return "", errors.New("--registry requires a value")
+			}
+			i++
 		default:
+			if strings.HasPrefix(f, "--registry=") {
+				continue
+			}
 			return "", fmt.Errorf("unknown flag: %s", f)
 		}
 	}
@@ -184,4 +359,34 @@ func writeSkill(root string, name string, body []byte) (string, error) {
 		return "", fmt.Errorf("write skill: %w", err)
 	}
 	return target, nil
+}
+
+type installOptions struct {
+	Registry string
+	Force    bool
+}
+
+func parseInstallOptions(flags []string) (installOptions, error) {
+	out := installOptions{}
+	for i := 0; i < len(flags); i++ {
+		f := flags[i]
+		switch f {
+		case "--global", "--project":
+		case "--force":
+			out.Force = true
+		case "--registry":
+			if i+1 >= len(flags) {
+				return out, errors.New("--registry requires a value")
+			}
+			out.Registry = strings.ToLower(strings.TrimSpace(flags[i+1]))
+			i++
+		default:
+			if strings.HasPrefix(f, "--registry=") {
+				out.Registry = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(f, "--registry=")))
+				continue
+			}
+			return out, fmt.Errorf("unknown flag: %s", f)
+		}
+	}
+	return out, nil
 }

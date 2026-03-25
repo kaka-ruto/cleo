@@ -1,64 +1,41 @@
 # cleo
 
-Cleo is the master CLI for humans and agents.
+Cleo is a deterministic CLI for software delivery with humans and coding agents.
 
-## Positioning
+It turns PRs, QA, tasks, skills, cost estimation, and releases into explicit workflows so teams ship faster with less chaos.
 
-### What It Is
+## Why Cleo
 
-- A deterministic CLI that turns common engineering work into explicit, repeatable workflows.
-- A bridge between human intent and agent execution.
-- A quality-and-delivery harness that standardizes how PRs, QA, tasks, and releases are done.
+Teams adopting coding agents often struggle with:
 
-### What It Does Today
+- inconsistent output quality
+- skipped QA and release discipline
+- unclear ownership of follow-up work
+- ad-hoc shell sequences that are hard to audit
 
-- `cleo pr`: structured PR creation, checks, gating, and merge safety.
-- `cleo qa`: BDD-style acceptance criteria, policy-driven QA runs, and CI-integrated QA execution.
-- `cleo task`: captures and tracks follow-up work from QA/results.
-- `cleo release`: plan, cut, publish, verify with release discipline.
-- `cleo skill`: resolve, use, validate, and customize agent skills.
-- `cleo setup` / `cleo update`: safe, additive bootstrap and maintenance.
+Cleo provides one workflow surface with predictable commands, guardrails, and verifiable outcomes.
 
-### Why It Exists
+## Install
 
-- Teams are adopting coding agents quickly, but execution quality is inconsistent.
-- Cleo gives agents rails: clear contracts, predictable outputs, and auditable steps.
-- It reduces handholding while improving reliability.
-
-### What It Intends To Be
-
-- The default control plane for agentic software delivery.
-- A reusable standard any repo can adopt, regardless of stack.
-- A system where humans define intent and policy, and agents execute with rigor.
-
-## How Setup Works
-
-`cleo` has two setup layers:
-
-1. Global setup (one-time per machine): install `cleo` binary and dependencies.
-2. Repository setup (one-time per repo): initialize/maintain that repo's workflow config and QA kit assets.
-
-After global install, you can use the same `cleo` command in any repository. You only run `cleo setup` again when entering a new repo for the first time.
-
-## One-Command Install
+Install once per machine:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/install.sh | bash
 ```
 
-Non-interactive mode:
+Non-interactive install:
 
 ```bash
 NON_INTERACTIVE=1 curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/install.sh | bash
 ```
 
-## Quick Start Across Repositories
-
-Install once:
+Update:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/install.sh | bash
+cleo update
 ```
+
+## Quick Start
 
 In each repository (once):
 
@@ -67,83 +44,314 @@ cd /path/to/repo
 cleo setup
 ```
 
-Use normally after that:
+Then verify core workflows:
 
 ```bash
-cleo pr status <pr>
-cleo qa init
-cleo qa scaffold
 cleo pr doctor
+cleo qa init
 cleo task list
 cleo release latest
+cleo skill list
 ```
 
-## Help
+## Complete Capability Map
+
+### `setup`
+
+Purpose: bootstrap per-repository workflow assets and prerequisites.
+
+Commands:
+
+- `cleo setup`
+- `cleo setup --non-interactive`
+
+Example:
 
 ```bash
-cleo help
-cleo pr help
-cleo pr help merge
-cleo skill help
+cleo setup --non-interactive
 ```
 
-## Agent Setup
+### `update`
 
-`cleo setup` and `cleo update` now auto-install the builtin `cleo` skill at:
+Purpose: update your installed `cleo` binary from GitHub releases.
 
-- `.agents/skills/cleo/SKILL.md`
+Commands:
 
-This removes the need for large copy/paste `AGENTS.md` templates.
+- `cleo update`
+- `cleo update --non-interactive`
 
-## Update cleo
-
-Update from the latest GitHub release:
+Example:
 
 ```bash
 cleo update
 ```
 
-Non-interactive update:
+### `pr`
+
+Purpose: run deterministic PR operations with safety checks.
+
+Capabilities:
+
+- PR summary and status visibility
+- merge-readiness gating
+- GitHub check inspection and watch mode
+- local environment doctor checks
+- PR creation with structured metadata
+- safe merge/rebase/retarget/batch flows
+- post-merge command execution support
+
+Commands:
+
+- `cleo pr status <pr>`
+- `cleo pr gate <pr>`
+- `cleo pr checks <pr>`
+- `cleo pr watch <pr|sha>`
+- `cleo pr doctor`
+- `cleo pr run <pr> [--dry]`
+- `cleo pr create [flags]`
+- `cleo pr merge <pr> [flags]`
+- `cleo pr rebase <pr>`
+- `cleo pr retarget <pr> --base <branch>`
+- `cleo pr batch [--from <pr>] [flags]`
+
+Examples:
 
 ```bash
-cleo update --non-interactive
+cleo pr status 123
+cleo pr gate 123
+cleo pr merge 123 --delete-branch
 ```
 
-`cleo update` checks latest GitHub release first; if already current, it exits quickly with an up-to-date message.
+### `qa`
 
-## One-Command Uninstall
+Purpose: manage full QA sessions from scaffold to final report.
+
+Capabilities:
+
+- initialize reusable QA kit files
+- scaffold acceptance criteria templates
+- start structured QA sessions by source (`branch`, `pr`, `request`)
+- run planning and diagnostics for QA sessions
+- execute QA (`auto`, `manual`, `pr` modes)
+- capture findings with severity
+- finish with verdict (`pass`, `fail`, `blocked`)
+- publish or print QA reports
+
+Commands:
+
+- `cleo qa init`
+- `cleo qa scaffold [--title <text>]`
+- `cleo qa start --source <branch|pr|request> --ref <name|id|text> --goals <text> [--ac <yaml>]`
+- `cleo qa doctor --session <id>`
+- `cleo qa plan --session <id>`
+- `cleo qa run --session <id> [--mode <auto|manual|pr>]`
+- `cleo qa log --session <id> --title <text> --details <text> [--severity <low|medium|high|critical>]`
+- `cleo qa finish --session <id> --verdict <pass|fail|blocked>`
+- `cleo qa report --session <id> [--publish <pr>] [--ref <pr>]`
+
+Examples:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/uninstall.sh | bash
+cleo qa start --source pr --ref 123 --goals "Validate checkout happy/failure paths"
+cleo qa run --session 20260325-abc123 --mode auto
+cleo qa finish --session 20260325-abc123 --verdict pass
 ```
 
-Options:
+### `task`
+
+Purpose: track and execute follow-up work identified by QA/review workflows.
+
+Capabilities:
+
+- list by status
+- inspect single task details
+- claim ownership
+- execute with branch strategy
+- close completed tasks
+
+Commands:
+
+- `cleo task list [--status <open|in_progress|closed>]`
+- `cleo task show --id <task-id>`
+- `cleo task claim --id <task-id>`
+- `cleo task work --id <task-id> [--new-branch|--in-place]`
+- `cleo task close --id <task-id>`
+
+Examples:
 
 ```bash
-NON_INTERACTIVE=1 SCAN_ROOTS="$HOME/Code,$HOME/work" curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/uninstall.sh | bash
+cleo task list --status open
+cleo task claim --id TSK-42
+cleo task work --id TSK-42 --new-branch
 ```
 
-- `NON_INTERACTIVE=1`: auto-confirms prompts.
-- `SCAN_ROOTS`: comma-separated directories scanned for legacy `cleo.yml` cleanup.
+### `skill`
 
-## Setup Wizard
+Purpose: resolve, manage, install, validate, and customize skills.
 
-Run a guided per-repo setup with dependency checks, optional installs, GitHub auth, and additive repository bootstrap:
+Capabilities:
+
+- list resolved skills and source precedence
+- print resolved `SKILL.md` for active use
+- customize skill locally in `.agents/skills/<name>/SKILL.md`
+- validate one or all skills
+- install/uninstall skills at project/global scope
+- sync builtin skills
+- discover remote registries
+- browse registry skills
+- add/remove custom registries
+
+Commands:
+
+- `cleo skill list`
+- `cleo skill use <name>`
+- `cleo skill customize <name>`
+- `cleo skill check [name]`
+- `cleo skill install <name> [--global|--project] [--registry <name>] [--force]`
+- `cleo skill uninstall <name> [--global|--project]`
+- `cleo skill sync [--global|--project]`
+- `cleo skill registry [list]`
+- `cleo skill registry skills <registry> [--search <term>]`
+- `cleo skill registry add <name> --repo <owner/repo> --path <path> [--ref <ref>] [--description <text>]`
+- `cleo skill registry remove <name>`
+
+Built-in registries:
+
+- `openai` (`openai/skills`, `skills/.curated`)
+- `superpowers` (`obra/superpowers`, `skills`)
+- `superpowers-ruby` (`lucianghinda/superpowers-ruby`, `skills`)
+
+Examples:
 
 ```bash
-cleo setup
-cleo setup --non-interactive
+cleo skill registry list
+cleo skill registry skills openai --search frontend
+cleo skill install frontend-skill --registry openai --global
+cleo skill customize cleo
+cleo skill uninstall frontend-skill --global
 ```
 
-`cleo setup` does not create or read `cleo.yml`; it infers repo context from git and applies safe additive QA kit assets.
+### `release`
 
-## Build
+Purpose: deterministic release lifecycle.
+
+Capabilities:
+
+- list and inspect existing releases
+- validate preconditions before tagging
+- cut and push version tags
+- publish GitHub releases with notes
+- verify released artifact visibility
+- run explicit Go release flow
+
+Commands:
+
+- `cleo release list [--limit N]`
+- `cleo release latest`
+- `cleo release plan --version <vX.Y.Z>`
+- `cleo release cut --version <vX.Y.Z>`
+- `cleo release publish --version <vX.Y.Z> [flags]`
+- `cleo release verify --version <vX.Y.Z>`
+- `cleo release go <command>`
+
+Examples:
+
+```bash
+cleo release plan --version v0.3.0
+cleo release cut --version v0.3.0
+cleo release publish --version v0.3.0 --final
+cleo release verify --version v0.3.0
+```
+
+Release order:
+
+1. `plan`
+2. `cut`
+3. `publish`
+4. `verify`
+
+Packaging behavior:
+
+- Go repos (`go.mod`) auto-attach multi-arch tarballs + checksums
+- Ruby gem repos (`*.gemspec`) auto-attach `.gem` + checksums
+
+### `cost`
+
+Purpose: estimate engineering cost using codebase metrics and rate sources.
+
+Capabilities:
+
+- estimate from local code metrics
+- choose rate source (`cached`, `live`, `manual`)
+- choose output format (`markdown`, `plain`, `json`)
+
+Commands:
+
+- `cleo cost estimate`
+
+Examples:
+
+```bash
+cleo cost estimate --path . --rates-source cached
+cleo cost estimate --rates-source live --country Kenya
+cleo cost estimate --rates-source manual --hourly-rate 160 --format json
+```
+
+### `version` and `help`
+
+Purpose: discover current version and command usage.
+
+Commands:
+
+- `cleo version`
+- `cleo help`
+- `cleo help pr`
+- `cleo help qa`
+- `cleo help task`
+- `cleo help skill`
+- `cleo help release`
+- `cleo help cost`
+
+Example:
+
+```bash
+cleo version
+cleo help skill
+```
+
+## Configuration Model
+
+Cleo does not require `cleo.yml`.
+
+Repo context is inferred from git:
+
+- `remote.origin.url` for host/owner/repo
+- origin default branch for base branch
+- built-in defaults for operational behavior
+
+## Agent Integration Model
+
+`cleo setup` and `cleo update` auto-install the builtin Cleo skill at:
+
+- `.agents/skills/cleo/SKILL.md`
+
+This keeps agent workflow guidance co-located and versionable with the repo.
+
+## Developer Setup
+
+Build:
 
 ```bash
 go build ./cmd/cleo
 ```
 
-## Developer Commands
+Test:
+
+```bash
+go test ./...
+```
+
+Quality commands:
 
 ```bash
 make fmt
@@ -155,129 +363,6 @@ make clean
 make quality
 make ci-status
 make install-git-hooks
-```
-
-Logs default to `~/.cleo/logs/<repo>`. Override per run with:
-
-```bash
-LOG_DIR=logs make quality
-```
-
-## PR Commands
-
-```bash
-cleo pr status <pr>
-cleo pr gate <pr>
-cleo pr checks <pr>
-cleo pr doctor
-cleo pr watch <pr|sha>
-cleo pr run <pr> [--dry]
-cleo pr create [--title ...] [--summary ...] [--why ...] [--what ...] [--test ...] [--risk ...] [--rollback ...] [--owner ...] [--cmd ...] [--draft]
-cleo pr merge <pr> [--no-watch] [--no-run] [--no-rebase] [--delete-branch]
-cleo pr rebase <pr>
-cleo pr retarget <pr> --base <branch>
-cleo pr batch [--from <pr>] [--no-watch] [--no-run] [--no-rebase]
-```
-
-## QA Commands
-
-```bash
-cleo qa init
-cleo qa scaffold [--title <text>]
-cleo qa start --source <branch|pr|request> --ref <name|id|text> --goals <text> [--ac <yaml>]
-cleo qa plan --session <id>
-cleo qa doctor --session <id>
-cleo qa run --session <id> [--mode <auto|manual|pr>]
-cleo qa log --session <id> --title <text> --details <text> [--severity <low|medium|high|critical>]
-cleo qa finish --session <id> --verdict <pass|fail|blocked>
-cleo qa report --session <id> [--publish <pr>] [--ref <pr>]
-```
-
-## Task Commands
-
-```bash
-cleo task list
-cleo task show --task <id>
-cleo task claim --task <id>
-cleo task close --task <id>
-cleo task work --task <id>
-```
-
-## Skill Commands
-
-```bash
-cleo skill list
-cleo skill use cleo
-cleo skill use ceo
-cleo skill customize cleo
-cleo skill customize ceo
-cleo skill install cleo --global
-cleo skill install ceo --global
-cleo skill sync --project
-cleo skill check
-cleo skill check cleo
-cleo skill check ceo
-```
-
-## Cost Commands
-
-```bash
-cleo cost help
-cleo cost estimate
-cleo cost estimate --path . --rates-source cached
-cleo cost estimate --rates-source live --country Germany
-cleo cost estimate --format markdown
-cleo cost estimate --format plain
-cleo cost estimate --format json
-cleo cost estimate --rates-source manual --hourly-rate 160
-```
-
-## Release Commands
-
-```bash
-cleo release help
-cleo release go help
-cleo release list --limit 10
-cleo release latest
-cleo release plan --version v0.1.0
-cleo release cut --version v0.1.0
-cleo release publish --version v0.1.0 [--draft|--final] [--no-notes] [--summary "..."] [--highlights "..."] [--breaking "..."] [--migration "..."] [--verification "..."]
-cleo release verify --version v0.1.0
-cleo release go publish --version v0.1.0 [--draft|--final] [--no-notes]
-```
-
-Release workflow follows the same deterministic pattern:
-
-1. `plan` validates preconditions.
-2. `cut` creates and pushes the tag.
-3. `publish` creates the GitHub release.
-4. `verify` confirms release visibility.
-
-`publish` generates release notes in an enforced sectioned format using the matching `CHANGELOG.md` version entry and includes GitHub-generated change notes inside that template. If changelog sections are missing, cleo warns and uses guidance defaults; agents can provide explicit section text via publish flags.
-
-For Go repositories (`go.mod` present), `publish` automatically:
-
-- builds `linux/darwin` binaries for `amd64/arm64`
-- packages tarballs
-- generates `checksums.txt`
-- uploads artifacts to the GitHub release
-
-For Ruby gem repositories (`*.gemspec` present), `publish` automatically:
-
-- builds the gem into `dist/release/<version>/`
-- writes `checksums.txt`
-- uploads the `.gem` and checksum file to the GitHub release
-
-Release packaging currently uses built-in defaults:
-
-- `binary_name`: `cleo`
-- `build_target`: `./cmd/cleo`
-- `changelog_file`: `CHANGELOG.md`
-
-## Tests
-
-```bash
-go test ./...
 ```
 
 ## Uninstall

@@ -1,8 +1,6 @@
 # cleo
 
-Cleo is a deterministic CLI for software delivery with humans and coding agents.
-
-It turns PRs, QA, tasks, skills, cost estimation, and releases into explicit workflows so teams ship faster with less chaos.
+Cleo is a workflow CLI for modern software teams that standardizes how humans and coding agents ship code, from PR to release.
 
 ## Why Cleo
 

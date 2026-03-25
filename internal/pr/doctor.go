@@ -3,7 +3,7 @@ package pr
 import (
 	"fmt"
 
-	"github.com/cafaye/cleo/internal/ghcli"
+	"github.com/kaka-ruto/cleo/internal/ghcli"
 )
 
 func (s *Service) Doctor() error {

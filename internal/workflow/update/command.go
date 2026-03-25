@@ -1,7 +1,7 @@
 package update
 
 import "fmt"
-import basesetup "github.com/cafaye/cleo/internal/setup"
+import basesetup "github.com/kaka-ruto/cleo/internal/setup"
 
 type Command struct {
 	updater *ReleaseUpdater

@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cafaye/cleo/internal/config"
-	"github.com/cafaye/cleo/internal/ghcli"
+	"github.com/kaka-ruto/cleo/internal/config"
+	"github.com/kaka-ruto/cleo/internal/ghcli"
 )
 
 type Runner interface {

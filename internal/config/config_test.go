@@ -12,7 +12,7 @@ import (
 func TestLoadProjectAppliesDefaultsWithGitInference(t *testing.T) {
 	dir := t.TempDir()
 	initGitRepo(t, dir)
-	configureGitRemote(t, dir, "git@github.com:cafaye/cleo.git")
+	configureGitRemote(t, dir, "git@github.com:kaka-ruto/cleo.git")
 	setOriginHead(t, dir, "main")
 	t.Chdir(dir)
 
@@ -23,8 +23,8 @@ func TestLoadProjectAppliesDefaultsWithGitInference(t *testing.T) {
 	if cfg.GitHub.Host != "github.com" {
 		t.Fatalf("expected inferred host github.com, got %s", cfg.GitHub.Host)
 	}
-	if cfg.GitHub.Owner != "cafaye" || cfg.GitHub.Repo != "cleo" {
-		t.Fatalf("expected inferred repo cafaye/cleo, got %s/%s", cfg.GitHub.Owner, cfg.GitHub.Repo)
+	if cfg.GitHub.Owner != "kaka-ruto" || cfg.GitHub.Repo != "cleo" {
+		t.Fatalf("expected inferred repo kaka-ruto/cleo, got %s/%s", cfg.GitHub.Owner, cfg.GitHub.Repo)
 	}
 	if cfg.GitHub.BaseBranch != "main" {
 		t.Fatalf("expected inferred base branch main, got %s", cfg.GitHub.BaseBranch)
@@ -84,7 +84,7 @@ func TestLoadProjectFailsWhenRepoNotInferable(t *testing.T) {
 func TestLoadProjectIgnoresLegacyCleoYml(t *testing.T) {
 	dir := t.TempDir()
 	initGitRepo(t, dir)
-	configureGitRemote(t, dir, "https://github.com/cafaye/cleo.git")
+	configureGitRemote(t, dir, "https://github.com/kaka-ruto/cleo.git")
 	setOriginHead(t, dir, "main")
 	t.Chdir(dir)
 
@@ -97,8 +97,8 @@ func TestLoadProjectIgnoresLegacyCleoYml(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected cleo.yml to be ignored, got error: %v", err)
 	}
-	if cfg.GitHub.Owner != "cafaye" || cfg.GitHub.Repo != "cleo" {
-		t.Fatalf("expected inferred repo cafaye/cleo, got %s/%s", cfg.GitHub.Owner, cfg.GitHub.Repo)
+	if cfg.GitHub.Owner != "kaka-ruto" || cfg.GitHub.Repo != "cleo" {
+		t.Fatalf("expected inferred repo kaka-ruto/cleo, got %s/%s", cfg.GitHub.Owner, cfg.GitHub.Repo)
 	}
 }
 
@@ -110,8 +110,8 @@ func TestParseRepoFromRemoteURL(t *testing.T) {
 		owner string
 		repo  string
 	}{
-		{name: "ssh", raw: "git@github.com:cafaye/cleo.git", host: "github.com", owner: "cafaye", repo: "cleo"},
-		{name: "https", raw: "https://github.com/cafaye/cleo.git", host: "github.com", owner: "cafaye", repo: "cleo"},
+		{name: "ssh", raw: "git@github.com:kaka-ruto/cleo.git", host: "github.com", owner: "kaka-ruto", repo: "cleo"},
+		{name: "https", raw: "https://github.com/kaka-ruto/cleo.git", host: "github.com", owner: "kaka-ruto", repo: "cleo"},
 		{name: "enterprise", raw: "git@ghe.local:team/repo.git", host: "ghe.local", owner: "team", repo: "repo"},
 	}
 	for _, tc := range tests {
@@ -128,7 +128,7 @@ func TestParseRepoFromRemoteURL(t *testing.T) {
 }
 
 func TestParseRepoFromRemoteURLRejectsInvalid(t *testing.T) {
-	for _, raw := range []string{"", "github.com/cafaye/cleo", "https://github.com/cafaye"} {
+	for _, raw := range []string{"", "github.com/kaka-ruto/cleo", "https://github.com/kaka-ruto"} {
 		if _, _, _, err := parseRepoFromRemoteURL(raw); err == nil {
 			t.Fatalf("expected parse failure for %q", raw)
 		}

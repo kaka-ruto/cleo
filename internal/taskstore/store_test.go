@@ -23,7 +23,7 @@ func TestUpsertOpenTaskDedupesByRepoAndKey(t *testing.T) {
 
 	first, created, err := store.UpsertOpenTask(context.Background(), Task{
 		SessionID: session.ID,
-		RepoKey:   "github.com/cafaye/cleo",
+		RepoKey:   "github.com/kaka-ruto/cleo",
 		Title:     "Checkout button fails",
 		Details:   "clicking checkout returns 500",
 		Severity:  "high",
@@ -38,7 +38,7 @@ func TestUpsertOpenTaskDedupesByRepoAndKey(t *testing.T) {
 
 	second, created, err := store.UpsertOpenTask(context.Background(), Task{
 		SessionID: session.ID,
-		RepoKey:   "github.com/cafaye/cleo",
+		RepoKey:   "github.com/kaka-ruto/cleo",
 		Title:     "Checkout button fails",
 		Details:   "clicking checkout returns 500",
 		Severity:  "high",

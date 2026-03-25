@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cafaye/cleo/internal/skills"
-	"github.com/cafaye/cleo/internal/skills/registry"
+	"github.com/kaka-ruto/cleo/internal/skills"
+	"github.com/kaka-ruto/cleo/internal/skills/registry"
 )
 
 type Command struct {

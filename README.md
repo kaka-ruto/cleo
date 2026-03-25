@@ -43,13 +43,13 @@ After global install, you can use the same `cleo` command in any repository. You
 ## One-Command Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/install.sh | bash
 ```
 
 Non-interactive mode:
 
 ```bash
-NON_INTERACTIVE=1 curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/install.sh | bash
+NON_INTERACTIVE=1 curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/install.sh | bash
 ```
 
 ## Quick Start Across Repositories
@@ -57,7 +57,7 @@ NON_INTERACTIVE=1 curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/maste
 Install once:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/install.sh | bash
 ```
 
 In each repository (once):
@@ -95,10 +95,6 @@ cleo skill help
 
 This removes the need for large copy/paste `AGENTS.md` templates.
 
-If your agent runtime still requires `AGENTS.md` to load defaults, use the minimal bootstrap:
-
-- [YOUR_AGENTS.md](/Users/kaka/Code/Cafaye/cleo/docs/YOUR_AGENTS.md)
-
 ## Update cleo
 
 Update from the latest GitHub release:
@@ -118,13 +114,13 @@ cleo update --non-interactive
 ## One-Command Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/uninstall.sh | bash
 ```
 
 Options:
 
 ```bash
-NON_INTERACTIVE=1 SCAN_ROOTS="$HOME/Code,$HOME/work" curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/uninstall.sh | bash
+NON_INTERACTIVE=1 SCAN_ROOTS="$HOME/Code,$HOME/work" curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/uninstall.sh | bash
 ```
 
 - `NON_INTERACTIVE=1`: auto-confirms prompts.
@@ -287,11 +283,11 @@ go test ./...
 ## Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/uninstall.sh | bash
 ```
 
 Remove Go toolchain and logs too:
 
 ```bash
-REMOVE_GO=1 REMOVE_LOGS=1 NON_INTERACTIVE=1 curl -fsSL https://raw.githubusercontent.com/cafaye/cleo/master/uninstall.sh | bash
+REMOVE_GO=1 REMOVE_LOGS=1 NON_INTERACTIVE=1 curl -fsSL https://raw.githubusercontent.com/kaka-ruto/cleo/master/uninstall.sh | bash
 ```

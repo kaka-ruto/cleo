@@ -1,6 +1,6 @@
 package release
 
-import "github.com/cafaye/cleo/internal/config"
+import "github.com/kaka-ruto/cleo/internal/config"
 
 type Input struct {
 	Name string

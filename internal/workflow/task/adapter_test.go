@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cafaye/cleo/internal/config"
-	"github.com/cafaye/cleo/internal/taskstore"
+	"github.com/kaka-ruto/cleo/internal/config"
+	"github.com/kaka-ruto/cleo/internal/taskstore"
 )
 
 func TestWorkFromBaseBranchCreatesTaskBranch(t *testing.T) {
@@ -131,7 +131,7 @@ func seedTask(t *testing.T, store *taskstore.Store) int64 {
 	}
 	task, _, err := store.UpsertOpenTask(context.Background(), taskstore.Task{
 		SessionID: session.ID,
-		RepoKey:   "github.com/cafaye/cleo",
+		RepoKey:   "github.com/kaka-ruto/cleo",
 		Title:     "Checkout fails",
 		Details:   "500 on submit",
 		Severity:  "high",

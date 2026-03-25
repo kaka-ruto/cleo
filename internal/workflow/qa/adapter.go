@@ -12,12 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cafaye/cleo/internal/config"
-	"github.com/cafaye/cleo/internal/qaaction"
-	"github.com/cafaye/cleo/internal/qacatalog"
-	"github.com/cafaye/cleo/internal/qacontract"
-	"github.com/cafaye/cleo/internal/qatools"
-	"github.com/cafaye/cleo/internal/taskstore"
+	"github.com/kaka-ruto/cleo/internal/config"
+	"github.com/kaka-ruto/cleo/internal/qaaction"
+	"github.com/kaka-ruto/cleo/internal/qacatalog"
+	"github.com/kaka-ruto/cleo/internal/qacontract"
+	"github.com/kaka-ruto/cleo/internal/qatools"
+	"github.com/kaka-ruto/cleo/internal/taskstore"
 	"gopkg.in/yaml.v3"
 )
 

@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cafaye/cleo/internal/qacatalog"
-	"github.com/cafaye/cleo/internal/skills"
+	"github.com/kaka-ruto/cleo/internal/qacatalog"
+	"github.com/kaka-ruto/cleo/internal/skills"
 )
 
 func ApplyPostUpdateMigrations(out io.Writer) error {

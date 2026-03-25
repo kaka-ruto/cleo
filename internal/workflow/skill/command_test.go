@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cafaye/cleo/internal/skills"
+	"github.com/kaka-ruto/cleo/internal/skills"
 )
 
 func TestExecuteListIncludesCEO(t *testing.T) {

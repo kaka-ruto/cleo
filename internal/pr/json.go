@@ -1,6 +1,6 @@
 package pr
 
-import "github.com/cafaye/cleo/internal/ghcli"
+import "github.com/kaka-ruto/cleo/internal/ghcli"
 
 func ghDecodeRows(out string) ([]int, error) {
 	var rows []struct {

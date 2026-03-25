@@ -22,7 +22,7 @@ func buildReleaseNotes(version, generated string) string {
 
 func buildReleaseNotesWithChangelog(version, generated string, sections ChangelogSections, changelogURL, fullChangelog string) string {
 	if strings.TrimSpace(fullChangelog) == "" {
-		fullChangelog = fmt.Sprintf("https://github.com/cafaye/cleo/commits/%s", version)
+		fullChangelog = fmt.Sprintf("https://github.com/kaka-ruto/cleo/commits/%s", version)
 	}
 	lines := []string{
 		"## Summary",

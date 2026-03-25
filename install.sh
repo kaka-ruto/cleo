@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/cafaye/cleo.git}"
+REPO_URL="${REPO_URL:-https://github.com/kaka-ruto/cleo.git}"
 BRANCH="${BRANCH:-master}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-0}"

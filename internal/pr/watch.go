@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cafaye/cleo/internal/ghcli"
+	"github.com/kaka-ruto/cleo/internal/ghcli"
 )
 
 func (s *Service) Watch(ref string) error {

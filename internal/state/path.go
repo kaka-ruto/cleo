@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cafaye/cleo/internal/config"
+	"github.com/kaka-ruto/cleo/internal/config"
 )
 
 func DBPath(cfg *config.Config) (string, error) {

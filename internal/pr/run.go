@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/cafaye/cleo/internal/ghcli"
+	"github.com/kaka-ruto/cleo/internal/ghcli"
 )
 
 func (s *Service) Run(pr string, dry bool) error {

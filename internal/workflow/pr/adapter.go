@@ -1,6 +1,6 @@
 package pr
 
-import corepr "github.com/cafaye/cleo/internal/pr"
+import corepr "github.com/kaka-ruto/cleo/internal/pr"
 
 type Adapter struct {
 	service *corepr.Service

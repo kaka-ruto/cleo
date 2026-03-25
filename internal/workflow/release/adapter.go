@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cafaye/cleo/internal/ghcli"
-	releaseruntime "github.com/cafaye/cleo/internal/workflow/release/runtime"
+	"github.com/kaka-ruto/cleo/internal/ghcli"
+	releaseruntime "github.com/kaka-ruto/cleo/internal/workflow/release/runtime"
 )
 
 type Adapter struct {

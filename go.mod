@@ -1,4 +1,4 @@
-module github.com/cafaye/cleo
+module github.com/kaka-ruto/cleo
 
 go 1.25.1
 

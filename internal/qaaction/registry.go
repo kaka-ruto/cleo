@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cafaye/cleo/internal/qacontract"
+	"github.com/kaka-ruto/cleo/internal/qacontract"
 )
 
 type Registry struct{}

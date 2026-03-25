@@ -4,13 +4,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cafaye/cleo/internal/config"
+	"github.com/kaka-ruto/cleo/internal/config"
 )
 
 func TestGatePassesForGreenPR(t *testing.T) {
 	cfg := testConfig()
 	f := newFakeRunner()
-	f.when([]string{"pr", "view", "12", "--repo", "cafaye/cleo", "--json", "number,title,url,state,isDraft,mergeable,reviewDecision,baseRefName,headRefName,statusCheckRollup"}, `{"number":12,"title":"T","url":"u","state":"OPEN","isDraft":false,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","baseRefName":"master","headRefName":"feat","statusCheckRollup":[{"name":"ci","workflowName":"CI","status":"COMPLETED","conclusion":"SUCCESS"}]}`)
+	f.when([]string{"pr", "view", "12", "--repo", "kaka-ruto/cleo", "--json", "number,title,url,state,isDraft,mergeable,reviewDecision,baseRefName,headRefName,statusCheckRollup"}, `{"number":12,"title":"T","url":"u","state":"OPEN","isDraft":false,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","baseRefName":"master","headRefName":"feat","statusCheckRollup":[{"name":"ci","workflowName":"CI","status":"COMPLETED","conclusion":"SUCCESS"}]}`)
 	svc := NewServiceWithRunner(cfg, f)
 	if err := svc.Gate("12"); err != nil {
 		t.Fatalf("expected gate pass, got %v", err)
@@ -20,7 +20,7 @@ func TestGatePassesForGreenPR(t *testing.T) {
 func TestGateFailsForDraft(t *testing.T) {
 	cfg := testConfig()
 	f := newFakeRunner()
-	f.when([]string{"pr", "view", "7", "--repo", "cafaye/cleo", "--json", "number,title,url,state,isDraft,mergeable,reviewDecision,baseRefName,headRefName,statusCheckRollup"}, `{"number":7,"title":"T","url":"u","state":"OPEN","isDraft":true,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","baseRefName":"master","headRefName":"feat","statusCheckRollup":[]}`)
+	f.when([]string{"pr", "view", "7", "--repo", "kaka-ruto/cleo", "--json", "number,title,url,state,isDraft,mergeable,reviewDecision,baseRefName,headRefName,statusCheckRollup"}, `{"number":7,"title":"T","url":"u","state":"OPEN","isDraft":true,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","baseRefName":"master","headRefName":"feat","statusCheckRollup":[]}`)
 	svc := NewServiceWithRunner(cfg, f)
 	err := svc.Gate("7")
 	if err == nil || !strings.Contains(err.Error(), "draft") {
@@ -31,7 +31,7 @@ func TestGateFailsForDraft(t *testing.T) {
 func TestGateFailsForPendingChecks(t *testing.T) {
 	cfg := testConfig()
 	f := newFakeRunner()
-	f.when([]string{"pr", "view", "9", "--repo", "cafaye/cleo", "--json", "number,title,url,state,isDraft,mergeable,reviewDecision,baseRefName,headRefName,statusCheckRollup"}, `{"number":9,"title":"T","url":"u","state":"OPEN","isDraft":false,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","baseRefName":"master","headRefName":"feat","statusCheckRollup":[{"name":"ci","workflowName":"CI","status":"IN_PROGRESS","conclusion":"","url":"https://example/check"}]}`)
+	f.when([]string{"pr", "view", "9", "--repo", "kaka-ruto/cleo", "--json", "number,title,url,state,isDraft,mergeable,reviewDecision,baseRefName,headRefName,statusCheckRollup"}, `{"number":9,"title":"T","url":"u","state":"OPEN","isDraft":false,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","baseRefName":"master","headRefName":"feat","statusCheckRollup":[{"name":"ci","workflowName":"CI","status":"IN_PROGRESS","conclusion":"","url":"https://example/check"}]}`)
 	svc := NewServiceWithRunner(cfg, f)
 	err := svc.Gate("9")
 	if err == nil || !strings.Contains(err.Error(), "pending checks") {
@@ -45,7 +45,7 @@ func TestGateFailsForPendingChecks(t *testing.T) {
 func TestGateFailsWhenNoChecksReported(t *testing.T) {
 	cfg := testConfig()
 	f := newFakeRunner()
-	f.when([]string{"pr", "view", "10", "--repo", "cafaye/cleo", "--json", "number,title,url,state,isDraft,mergeable,reviewDecision,baseRefName,headRefName,statusCheckRollup"}, `{"number":10,"title":"T","url":"u","state":"OPEN","isDraft":false,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","baseRefName":"master","headRefName":"feat","statusCheckRollup":[]}`)
+	f.when([]string{"pr", "view", "10", "--repo", "kaka-ruto/cleo", "--json", "number,title,url,state,isDraft,mergeable,reviewDecision,baseRefName,headRefName,statusCheckRollup"}, `{"number":10,"title":"T","url":"u","state":"OPEN","isDraft":false,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","baseRefName":"master","headRefName":"feat","statusCheckRollup":[]}`)
 	svc := NewServiceWithRunner(cfg, f)
 	err := svc.Gate("10")
 	if err == nil || !strings.Contains(err.Error(), "no status checks reported") {
@@ -56,7 +56,7 @@ func TestGateFailsWhenNoChecksReported(t *testing.T) {
 func testConfig() *config.Config {
 	cfg := &config.Config{}
 	cfg.Version = 1
-	cfg.GitHub.Owner = "cafaye"
+	cfg.GitHub.Owner = "kaka-ruto"
 	cfg.GitHub.Repo = "cleo"
 	cfg.GitHub.BaseBranch = "master"
 	cfg.GitHub.MergeMethod = "merge"

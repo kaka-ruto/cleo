@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cafaye/cleo/internal/config"
-	"github.com/cafaye/cleo/internal/taskstore"
+	"github.com/kaka-ruto/cleo/internal/config"
+	"github.com/kaka-ruto/cleo/internal/taskstore"
 )
 
 type Adapter struct {

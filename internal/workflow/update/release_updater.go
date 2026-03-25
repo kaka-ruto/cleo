@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	defaultOwner = "cafaye"
+	defaultOwner = "kaka-ruto"
 	defaultRepo  = "cleo"
 )
 

@@ -175,7 +175,7 @@ jobs:
       - shell: bash
         run: |
           set -euo pipefail
-          api="https://api.github.com/repos/cafaye/cleo/releases/latest"
+          api="https://api.github.com/repos/kaka-ruto/cleo/releases/latest"
           version="$(curl -fsSL "$api" | jq -r '.tag_name')"
           asset="cleo_${version}_linux_amd64.tar.gz"
           url="$(curl -fsSL "$api" | jq -r --arg name "$asset" '.assets[] | select(.name==$name) | .browser_download_url')"

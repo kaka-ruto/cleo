@@ -65,12 +65,6 @@ Commands:
 - `cleo setup`
 - `cleo setup --non-interactive`
 
-Example:
-
-```bash
-cleo setup --non-interactive
-```
-
 ### `update`
 
 Purpose: update your installed `cleo` binary from GitHub releases.
@@ -79,12 +73,6 @@ Commands:
 
 - `cleo update`
 - `cleo update --non-interactive`
-
-Example:
-
-```bash
-cleo update
-```
 
 ### `pr`
 
@@ -117,9 +105,16 @@ Commands:
 Examples:
 
 ```bash
-cleo pr status 123
 cleo pr gate 123
-cleo pr merge 123 --delete-branch
+cleo pr checks 123
+```
+
+Typical output shape:
+
+```text
+PR #123: merge-ready
+Required checks: 6/6 passing
+Review decision: APPROVED
 ```
 
 ### `qa`
@@ -154,7 +149,16 @@ Examples:
 ```bash
 cleo qa start --source pr --ref 123 --goals "Validate checkout happy/failure paths"
 cleo qa run --session 20260325-abc123 --mode auto
-cleo qa finish --session 20260325-abc123 --verdict pass
+cleo qa report --session 20260325-abc123 --publish 123
+```
+
+Typical output shape:
+
+```text
+Session: 20260325-abc123
+Verdict: pass
+Findings: 0 critical, 1 medium
+Report published to PR #123
 ```
 
 ### `task`
@@ -181,8 +185,15 @@ Examples:
 
 ```bash
 cleo task list --status open
-cleo task claim --id TSK-42
-cleo task work --id TSK-42 --new-branch
+cleo task show --id TSK-42
+```
+
+Typical output shape:
+
+```text
+TSK-42  open  medium  "Handle retry on webhook timeout"
+Owner: unclaimed
+Source: QA session 20260325-abc123
 ```
 
 ### `skill`
@@ -227,8 +238,16 @@ Examples:
 cleo skill registry list
 cleo skill registry skills openai --search frontend
 cleo skill install frontend-skill --registry openai --global
-cleo skill customize cleo
-cleo skill uninstall frontend-skill --global
+```
+
+Typical output shape:
+
+```text
+openai            OpenAI curated skills
+superpowers       obra superpowers skills
+superpowers-ruby  Ruby/Rails superpowers skills
+
+Installed skill frontend-skill from registry openai to ~/.agents/skills/frontend-skill/SKILL.md
 ```
 
 ### `release`
@@ -260,7 +279,14 @@ Examples:
 cleo release plan --version v0.3.0
 cleo release cut --version v0.3.0
 cleo release publish --version v0.3.0 --final
-cleo release verify --version v0.3.0
+```
+
+Typical output shape:
+
+```text
+Release plan passed for v0.3.0.
+Release tag v0.3.0 created and pushed.
+Release v0.3.0 published.
 ```
 
 Release order:
@@ -292,9 +318,16 @@ Commands:
 Examples:
 
 ```bash
-cleo cost estimate --path . --rates-source cached
-cleo cost estimate --rates-source live --country Kenya
 cleo cost estimate --rates-source manual --hourly-rate 160 --format json
+```
+
+Typical output shape:
+
+```json
+{
+  "summary": { "estimated_hours": 42, "estimated_cost": 6720 },
+  "inputs": { "hourly_rate": 160, "rates_source": "manual" }
+}
 ```
 
 ### `version` and `help`
@@ -311,13 +344,6 @@ Commands:
 - `cleo help skill`
 - `cleo help release`
 - `cleo help cost`
-
-Example:
-
-```bash
-cleo version
-cleo help skill
-```
 
 ## Configuration Model
 

@@ -24,6 +24,42 @@ All notable changes to this project will be documented in this file.
 
 - Add verification commands/results for unreleased work.
 
+## [v0.2.11]
+
+### Summary
+
+- Prepared Cleo for public launch with a significantly improved README and completed repository owner migration to `kaka-ruto`.
+
+### Highlights
+
+- Rewrote README for launch quality:
+  - Complete capability map across `setup`, `update`, `pr`, `qa`, `task`, `skill`, `release`, `cost`, `version/help`
+  - Real artifact-oriented output examples (not command echo examples)
+  - Practical quick-start and workflow context
+  - Updated install/uninstall links and references to `kaka-ruto/cleo`
+- Completed owner migration across the codebase:
+  - Module path updated to `github.com/kaka-ruto/cleo`
+  - Internal imports and GitHub references updated from `cafaye` to `kaka-ruto`
+  - Git remotes/workflow references aligned to new owner path
+- Removed legacy `docs/YOUR_AGENTS.md` and cleaned related README references to keep documentation skill-first.
+
+### Breaking Changes
+
+- None.
+
+### Migration Notes
+
+- If you have old remotes, update them to:
+  - `git@github.com:kaka-ruto/cleo.git`
+- If any internal tooling references old module paths, update imports to:
+  - `github.com/kaka-ruto/cleo/...`
+
+### Verification
+
+- `go test ./...`
+- `go run ./cmd/cleo release latest`
+- `go run ./cmd/cleo help`
+
 ## [v0.2.10]
 
 ### Summary

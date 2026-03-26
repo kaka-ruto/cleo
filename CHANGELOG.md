@@ -24,6 +24,36 @@ All notable changes to this project will be documented in this file.
 
 - Add verification commands/results for unreleased work.
 
+## [v0.2.12]
+
+### Summary
+
+- Fixed release artifact build-target inference so `cleo release publish` works in Go repositories that are not structured like Cleo itself.
+
+### Highlights
+
+- `release.build_target` now defaults dynamically by repository layout:
+  - `./cmd/cleo` when `cmd/cleo` exists (Cleo layout)
+  - `.` when `main.go` exists at repo root (common single-binary Go layout)
+  - `./cmd` when `cmd/main.go` exists
+  - fallback remains `./cmd/cleo`
+- Added config tests covering:
+  - root `main.go` repositories (e.g., `cafaye-cli` style)
+  - Cleo `cmd/cleo` repository layout
+
+### Breaking Changes
+
+- None.
+
+### Migration Notes
+
+- No migration required.
+- Existing explicit `release.build_target` values continue to take precedence.
+
+### Verification
+
+- `go test ./internal/config ./internal/workflow/release/... ./cmd/cleo/help ./cmd/cleo`
+
 ## [v0.2.11]
 
 ### Summary

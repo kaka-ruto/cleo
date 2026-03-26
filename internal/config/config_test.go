@@ -102,6 +102,44 @@ func TestLoadProjectIgnoresLegacyCleoYml(t *testing.T) {
 	}
 }
 
+func TestLoadProjectDefaultsBuildTargetForRootMainGo(t *testing.T) {
+	dir := t.TempDir()
+	initGitRepo(t, dir)
+	configureGitRemote(t, dir, "git@github.com:cafaye/cafaye-cli.git")
+	setOriginHead(t, dir, "main")
+	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main\nfunc main(){}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(dir)
+
+	cfg, err := LoadProject()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Release.BuildTarget != "." {
+		t.Fatalf("expected inferred build target '.', got %s", cfg.Release.BuildTarget)
+	}
+}
+
+func TestLoadProjectDefaultsBuildTargetForCleoLayout(t *testing.T) {
+	dir := t.TempDir()
+	initGitRepo(t, dir)
+	configureGitRemote(t, dir, "git@github.com:kaka-ruto/cleo.git")
+	setOriginHead(t, dir, "master")
+	if err := os.MkdirAll(filepath.Join(dir, "cmd", "cleo"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(dir)
+
+	cfg, err := LoadProject()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Release.BuildTarget != "./cmd/cleo" {
+		t.Fatalf("expected inferred build target './cmd/cleo', got %s", cfg.Release.BuildTarget)
+	}
+}
+
 func TestParseRepoFromRemoteURL(t *testing.T) {
 	tests := []struct {
 		name  string

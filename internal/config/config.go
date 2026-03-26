@@ -3,7 +3,9 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -252,7 +254,7 @@ func (c *Config) applyDefaults() {
 		c.Release.BinaryName = "cleo"
 	}
 	if c.Release.BuildTarget == "" {
-		c.Release.BuildTarget = "./cmd/cleo"
+		c.Release.BuildTarget = inferDefaultBuildTarget()
 	}
 	c.Release.GenerateNotes = true
 	if c.QA.ActorsDir == "" {
@@ -302,4 +304,22 @@ func (c *Config) validate() error {
 		return fmt.Errorf("release.build_target is required")
 	}
 	return nil
+}
+
+func inferDefaultBuildTarget() string {
+	if pathExists("cmd", "cleo") {
+		return "./cmd/cleo"
+	}
+	if pathExists("main.go") {
+		return "."
+	}
+	if pathExists("cmd", "main.go") {
+		return "./cmd"
+	}
+	return "./cmd/cleo"
+}
+
+func pathExists(parts ...string) bool {
+	_, err := os.Stat(filepath.Join(parts...))
+	return err == nil
 }

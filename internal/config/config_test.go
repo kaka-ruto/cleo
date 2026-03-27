@@ -140,6 +140,42 @@ func TestLoadProjectDefaultsBuildTargetForCleoLayout(t *testing.T) {
 	}
 }
 
+func TestLoadProjectDefaultsBinaryNameFromRepo(t *testing.T) {
+	dir := t.TempDir()
+	initGitRepo(t, dir)
+	configureGitRemote(t, dir, "git@github.com:cafaye/cafaye-cli.git")
+	setOriginHead(t, dir, "master")
+	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main\nfunc main(){}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(dir)
+
+	cfg, err := LoadProject()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Release.BinaryName != "cafaye" {
+		t.Fatalf("expected inferred binary name 'cafaye', got %s", cfg.Release.BinaryName)
+	}
+}
+
+func TestInferDefaultBinaryName(t *testing.T) {
+	tests := []struct {
+		repo string
+		want string
+	}{
+		{repo: "cleo", want: "cleo"},
+		{repo: "cafaye-cli", want: "cafaye"},
+		{repo: "mytool", want: "mytool"},
+		{repo: "", want: "cleo"},
+	}
+	for _, tc := range tests {
+		if got := inferDefaultBinaryName(tc.repo); got != tc.want {
+			t.Fatalf("inferDefaultBinaryName(%q)=%q want %q", tc.repo, got, tc.want)
+		}
+	}
+}
+
 func TestParseRepoFromRemoteURL(t *testing.T) {
 	tests := []struct {
 		name  string

@@ -251,7 +251,7 @@ func (c *Config) applyDefaults() {
 		c.Release.ChangelogFile = "CHANGELOG.md"
 	}
 	if c.Release.BinaryName == "" {
-		c.Release.BinaryName = "cleo"
+		c.Release.BinaryName = inferDefaultBinaryName(c.GitHub.Repo)
 	}
 	if c.Release.BuildTarget == "" {
 		c.Release.BuildTarget = inferDefaultBuildTarget()
@@ -317,6 +317,17 @@ func inferDefaultBuildTarget() string {
 		return "./cmd"
 	}
 	return "./cmd/cleo"
+}
+
+func inferDefaultBinaryName(repo string) string {
+	name := strings.TrimSpace(repo)
+	if name == "" {
+		return "cleo"
+	}
+	if strings.HasSuffix(name, "-cli") && len(name) > len("-cli") {
+		name = strings.TrimSuffix(name, "-cli")
+	}
+	return name
 }
 
 func pathExists(parts ...string) bool {
